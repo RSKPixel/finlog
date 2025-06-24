@@ -20,7 +20,7 @@ const Basetemplate = ({ children }) => {
 
   return (
     <div className="flex flex-col h-screen w-full">
-      <div className="flex flex-row h-10 w-full justify-between items-center  bg-stone-800 px-4 py-0 shadow-sm text-white border-b border-stone-700">
+      <div className="flex flex-row h-10 w-full justify-between items-center  bg-zinc-800 px-4 py-0 shadow-sm text-white border-b border-zinc-700">
         <h1 className="text-2xl font-bold">FinLog</h1>
         <div className="ms-auto"></div>
         {loggedIn && (
@@ -30,14 +30,16 @@ const Basetemplate = ({ children }) => {
         )}
       </div>
       <div className="flex flex-row text-white h-[calc(100vh-2.5rem)] w-full">
-        <div className="flex flex-col w-48 gap-2 h-full text-lg font-semibold border-r border-stone-700 overflow-y-auto ">
+        <div className="flex flex-col w-56 gap-2 h-full text-lg font-semibold pt-4  border-r-0 bg-zinc-950 border-stone-700 overflow-y-auto ">
           <ul>
             {Object.keys(menu).map((section) => (
               <li key={section} className="mb-4">
-                <div className="font-bold text-sm w-full bg-gray-900 px-2 py-1">{section}</div>
-                <ul>
+                <div className="font-bold text-sm w-full text-center border bg-zinc-800 px-2 py-1 border-stone-500">
+                  {section}
+                </div>
+                <ul className="border border-stone-500">
                   {Object.entries(menu[section]).map(([name, path]) => (
-                    <li key={name} className="bg-gray-500 text-black px-2 hover:bg-gray-300 cursor-pointer">
+                    <li key={name} className="bg-zinc-950 text-white px-2 hover:bg-zinc-600 cursor-pointer">
                       <Link to={path} className="text-xs ">
                         {name}
                       </Link>
@@ -49,7 +51,7 @@ const Basetemplate = ({ children }) => {
           </ul>
         </div>
 
-        <div className="flex flex-col w-full bg-stone-900  p-2 h-full">{children}</div>
+        <div className="flex flex-col w-full bg-zinc-950 p-4 h-full">{children}</div>
       </div>
     </div>
   );
