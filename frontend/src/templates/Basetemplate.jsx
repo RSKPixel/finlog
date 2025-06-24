@@ -1,24 +1,22 @@
 import React, { useContext } from 'react'
+import AuthContext from './AuthContext'
 
 const Basetemplate = ({ children }) => {
+
+    const { api, loggedIn, client } = useContext(AuthContext)
+
     return (
         <div className='flex flex-col'>
-            <header className='bg-blue-500 text-white p-2'>
-                <h1 className='text-2xl'>FinLog</h1>
-                <nav className='bg-gray-200 p-4'>
-                    <ul className='flex space-x-4'>
-                        <li><a href="/" className='text-blue-600'>Home</a></li>
-                        <li><a href="/about" className='text-blue-600'>About</a></li>
-                        <li><a href="/contact" className='text-blue-600'>Contact</a></li>
-                    </ul>
-                </nav>
-            </header>
-            <main className='p-4'>
+            <div className='flex flex-row fixed w-full justify-between items-center  bg-violet-700 px-4 py-1 shadow-sm text-white'>
+                <h1 className='text-2xl font-bold'>FinLog</h1>
+                <div className='ms-auto'></div>
+                {loggedIn &&
+                    <span className='font-bold'>{client.name} ({client.pan})</span>
+                }
+            </div>
+            <div className='flex flex-col mt-15 items-center justify-center text-white'>
                 {children}
-            </main>
-            <footer className='bg-gray-800 text-white p-4 mt-4'>
-                <p className='text-center'>© 2023 My Application</p>
-            </footer>
+            </div>
         </div>
     )
 }

@@ -15,3 +15,21 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+/* form.css */
+
+form {
+    @apply gap-2 border border-neutral-700 rounded-sm text-sm p-4 mt-2 shadow-lg bg-neutral-900;
+}
+
+input {
+    @apply bg-white/60 text-gray-900 border-neutral-600;
+    @apply w-[100%];
+    @apply rounded-sm;
+    @apply p-1;
+    @apply focus:outline-none;
+}
+
+button,
+a {
+    @apply text-white py-1 px-2 w-24 rounded-sm bg-gray-700 cursor-pointer hover:bg-gray-500 text-center;
+}
