@@ -34,10 +34,10 @@ const Basetemplate = ({ children }) => {
           <ul>
             {Object.keys(menu).map((section) => (
               <li key={section} className="mb-4">
-                <div className="font-bold text-sm w-full bg-blue-900 px-2 py-1">{section}</div>
+                <div className="font-bold text-sm w-full bg-gray-900 px-2 py-1">{section}</div>
                 <ul>
                   {Object.entries(menu[section]).map(([name, path]) => (
-                    <li key={name} className="bg-blue-500 text-black px-2 hover:bg-blue-300 cursor-pointer">
+                    <li key={name} className="bg-gray-500 text-black px-2 hover:bg-gray-300 cursor-pointer">
                       <Link to={path} className="text-xs ">
                         {name}
                       </Link>
