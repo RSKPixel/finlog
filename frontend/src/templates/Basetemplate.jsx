@@ -9,6 +9,9 @@ const Basetemplate = ({ children }) => {
       Dashboard: "/",
       "Client Profile": "/clientprofile",
     },
+    Masters: {
+      "Ledger Master": "/masters/ledger",
+    },
     Transactions: {
       Banking: "/transactions/banking",
       "Mutual Funds": "/transactions/mutualfunds",
@@ -24,9 +27,6 @@ const Basetemplate = ({ children }) => {
       "Capital Gains": "/reports/capitalgains",
       "Net Worth": "/reports/networth",
     },
-    Masters: {
-      "Ledger Master": "/masters/ledger",
-    },
     Tools: {
       Calculators: "/tools/calculator",
       "Market Data": "/tools/marketdata",
@@ -40,8 +40,8 @@ const Basetemplate = ({ children }) => {
         <h1 className="text-2xl font-bold">FinLog</h1>
         <div className="ms-auto" />
         {loggedIn && (
-          <span className="font-bold flex flex-row gap-4">
-            {client.name} ({client.pan})
+          <span className="font-bold flex flex-row gap-2 text-sm">
+            {client.name}
             <Link to={"/logout"}>
               <i className="bi bi-box-arrow-right"></i>
             </Link>
