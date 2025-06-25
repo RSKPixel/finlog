@@ -6,8 +6,8 @@ import "./index.css";
 import AuthContext from "./templates/AuthContext";
 import Authenticator from "./components/Authenticator";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import LedgerMaster from "./pages/masters/LedgerMaster";
 import Logout from "./components/Logout";
+import Instruments from "./pages/masters/Instruments";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -36,7 +36,7 @@ function App() {
           <Routes>
             <Route element={<Authenticator />}>
               <Route path="/" element={<Dashboard />} />
-              <Route path={"/masters/ledger"} element={<LedgerMaster />} />
+              <Route path={"/masters/ledger"} element={<Instruments />} />
             </Route>
 
             <Route path="/logout" element={<Logout />} />
