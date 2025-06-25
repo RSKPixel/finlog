@@ -1,34 +1,59 @@
 @import "tailwindcss";
 
 :root {
-  /* font-family: system-ui, Avenir, Helvetica, Arial, sans-serif; */
-  font-family: quick-sand, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  font-weight: 400;
+    /* font-family: system-ui, Avenir, Helvetica, Arial, sans-serif; */
+    font-family: quick-sand, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    font-weight: 400;
 
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #242424;
+    @apply bg-zinc-950;
+    /* background-color: aliceblue; */
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 /* form.css */
 
 form {
-  @apply gap-2 border border-neutral-700 rounded-sm text-sm p-4 mt-2 shadow-lg bg-neutral-900;
+    @apply gap-2 border border-neutral-700 rounded-sm text-sm p-4 mt-2 shadow-lg bg-neutral-900;
+}
+
+/* input {
+    @apply bg-white/60 text-gray-900 border-neutral-600;
+    @apply w-[100%];
+    @apply rounded-sm;
+    @apply p-1;
+    @apply focus:outline-none;
+}
+
+select {
+    @apply bg-white/60 text-gray-900 border-neutral-600;
+    @apply w-[100%];
+    @apply rounded-sm;
+    @apply p-1.5;
+    @apply focus:outline-none;
+} */
+
+label {
+    @apply text-sm font-semibold;
 }
 
 input {
-  @apply bg-white/60 text-gray-900 border-neutral-600;
-  @apply w-[100%];
-  @apply rounded-sm;
-  @apply p-1;
-  @apply focus:outline-none;
+    @apply text-sm bg-white/60 text-gray-900 border-neutral-600 w-full rounded-sm p-1.5 focus:outline-none leading-tight;
 }
 
+input:read-only {
+    @apply cursor-not-allowed bg-white/30 text-gray-500;
+}
+
+select {
+    @apply text-sm bg-white/60 text-gray-900 border-neutral-600 w-full rounded-sm p-1.5 focus:outline-none leading-tight appearance-none;
+}
 button {
-  @apply text-white py-1 px-2 w-24 rounded-sm bg-gray-700 cursor-pointer hover:bg-gray-500 text-center;
+    @apply text-white py-1 px-2 w-24 rounded-sm bg-sky-700 cursor-pointer hover:bg-sky-500 text-center;
 }
