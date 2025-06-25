@@ -53,7 +53,7 @@ const Basetemplate = ({ children }) => {
       <div className="flex flex-row text-stone-200 h-[calc(100vh-2.5rem)] w-full ">
         {/* Sidebar */}
         {loggedIn && (
-          <div className="flex flex-col w-72 gap-2 h-full text-sm font-medium p-4 pe-6 border-r border-sky-900 bg-stone-900 overflow-y-auto">
+          <div className="flex flex-col w-[300px] gap-2 h-full text-sm font-medium p-4 pe-6 border-r border-sky-900 bg-stone-900 overflow-y-auto">
             <ul>
               {Object.keys(menu).map((section) => (
                 <li key={section} className="mb-4">
@@ -64,9 +64,8 @@ const Basetemplate = ({ children }) => {
                     {Object.entries(menu[section]).map(([name, path], index, arr) => (
                       <li
                         key={name}
-                        className={`bg-stone-900 px-2 py-1 hover:bg-stone-700 cursor-pointer ${
-                          index === arr.length - 1 ? "rounded-b-sm" : ""
-                        }`}
+                        className={`bg-stone-900 px-2 py-1 hover:bg-stone-700 cursor-pointer ${index === arr.length - 1 ? "rounded-b-sm" : ""
+                          }`}
                       >
                         <Link to={path} className="block text-sm text-stone-100">
                           {name}

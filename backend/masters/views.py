@@ -4,7 +4,7 @@ from masters.models import Instruments
 
 
 @api_view(['POST'])
-def save_instrumentmaster(request):
+def update_instrumentmaster(request):
 
     action = request.data.get('action', "")
     client_pan = request.data.get('client_pan', "")

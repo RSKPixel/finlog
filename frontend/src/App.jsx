@@ -8,43 +8,52 @@ import Authenticator from "./components/Authenticator";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import Logout from "./components/Logout";
 import Instruments from "./pages/masters/Instruments";
+import Banking from "./assets/transactions/banking/Banking";
 
 function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [token, setToken] = useState(localStorage.getItem("finlog_token") || null);
-  const [client, setClient] = useState({
-    pan: "",
-    name: "",
-    email: "",
-    phone: "",
-  });
-  const api = "http://127.0.0.1:8000";
-  const provider = {
-    api,
-    loggedIn,
-    setLoggedIn,
-    token,
-    setToken,
-    client,
-    setClient,
-  };
+    const [loggedIn, setLoggedIn] = useState(false);
+    const [token, setToken] = useState(localStorage.getItem("finlog_token") || null);
+    const [client, setClient] = useState({
+        pan: "",
+        name: "",
+        email: "",
+        phone: "",
+    });
+    const api = "http://127.0.0.1:8000";
+    const provider = {
+        api,
+        loggedIn,
+        setLoggedIn,
+        token,
+        setToken,
+        client,
+        setClient,
+    };
 
-  return (
-    <Router>
-      <AuthContext.Provider value={provider}>
-        <Basetemplate>
-          <Routes>
-            <Route element={<Authenticator />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path={"/masters/ledger"} element={<Instruments />} />
-            </Route>
+    return (
+        <Router>
+            <AuthContext.Provider value={provider}>
+                <Basetemplate>
+                    <Routes>
+                        <Route element={<Authenticator />}>
+                            <Route path="/" element={<Dashboard />} />
 
-            <Route path="/logout" element={<Logout />} />
-          </Routes>
-        </Basetemplate>
-      </AuthContext.Provider>
-    </Router>
-  );
+                            <Route path="/masters">
+                                <Route path="ledger" element={<Instruments />} />
+                            </Route>
+
+                            <Route path="/transactions">
+                                <Route path="banking" element={<Banking />} />
+                            </Route>
+
+                        </Route>
+
+                        <Route path="/logout" element={<Logout />} />
+                    </Routes>
+                </Basetemplate>
+            </AuthContext.Provider>
+        </Router>
+    );
 }
 
 export default App;
