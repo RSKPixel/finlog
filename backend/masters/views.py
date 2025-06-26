@@ -11,16 +11,12 @@ def update_ledgermaster(request):
     ledger_name = request.data.get('ledger_name', "")
     ledger_ref_no = request.data.get('ledger_ref_no', "")
     ledger_group = request.data.get('ledger_group', "")
-    folio_no = request.data.get('folio_no', "")
-    folio_name = request.data.get('folio_name', "")
 
     data = {
         'client_pan': client_pan,
         'ledger_name': str.upper(ledger_name),
         'ledger_ref_no': ledger_ref_no,
         'ledger_group': ledger_group,
-        'folio_no': folio_no,
-        'folio_name': str.upper(folio_name)
     }
 
     found = LedgerMaster.objects.filter(

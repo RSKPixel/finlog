@@ -9,8 +9,6 @@ const LedgerMaster = () => {
         ledger_name: "",
         ledger_ref_no: "",
         ledger_group: "",
-        folio_no: "",
-        folio_name: "",
     };
     const [formData, setFormData] = useState(newData);
     const [formMessage, setFormMessage] = useState([]);
@@ -19,8 +17,6 @@ const LedgerMaster = () => {
         if (!formData.ledger_name.trim()) error.push("Fields Marked * are mandatory");
         // if (!formData.ledger_ref_no.trim()) error.push("Fields Marked * are mandatory");
         if (!formData.ledger_group.trim()) error.push("Fields Marked * are mandatory");
-        if (!formData.folio_no.trim()) error.push("Fields Marked * are mandatory");
-        if (!formData.folio_name.trim()) error.push("Fields Marked * are mandatory");
         return [...new Set(error)];
     };
     const [showSearch, setShowSearch] = useState(false);
@@ -108,23 +104,17 @@ const LedgerMaster = () => {
                             <option value="">Select Ledger Group</option>
                             <option value="Bank">Bank</option>
                             <option value="Cash">Cash</option>
+                            <option value="Trading Account">Trading Account</option>
                             <option value="Drawings">Drawings</option>
                             <option value="Income">Income</option>
                             <option value="Expense">Expense</option>
                             <option value="Assets">Assets</option>
                             <option value="Liabilities">Liabilities</option>
                             <option value="Investments">Investments</option>
+                            <option value="Insurance">Insurance</option>
                             <option value="Loans">Loans</option>
                             <option value="Fund Transfer">Fund Transfer</option>
                         </select>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        <label>Folio Number *</label>
-                        <input type="text" className=" uppercase" name="folio_no" value={formData.folio_no} onChange={handleChange} />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        <label>Folio Name *</label>
-                        <input type="text" className="uppercase" name="folio_name" value={formData.folio_name} onChange={handleChange} />
                     </div>
 
                     <div className="flex flex-col gap-2 col-span-2 text-center mt-1">
@@ -166,7 +156,6 @@ const LedgerMaster = () => {
 const LedgerSearch = ({ setFormData, setShowSearch, showSearch }) => {
     const { api, token, client } = useContext(AuthContext);
     const [searchResults, setSearchResults] = useState([]);
-    // const [selected, setSelected] = useState(show);
 
     useEffect(() => {
         fetch(`${api}/masters/ledger/search/`, {
@@ -192,12 +181,12 @@ const LedgerSearch = ({ setFormData, setShowSearch, showSearch }) => {
             <div
                 className={`flex flex-col bg-neutral-900 border border-white/10 rounded-sm shadow-xl max-h-2/3 relative w-2/3 h-fit overflow-auto`}
             >
-                <div className="absolut w-full flex flex-row p-1 items-center font-bold text-sm bg-amber-700">
+                <div className="absolute top-0 left-0 right-0 flex flex-row p-1 items-center font-bold text-sm bg-amber-700 z-10">
                     <span>Search Result</span>
-                    <span className="ms-auto"></span>
+                    <span className="ms-auto" />
                     <button type="button" className="button-icon red" onClick={() => setShowSearch(false)}>X</button>
                 </div>
-                <div className="grid grid-cols-3 border w-full border-sky-900 p-1  bg-sky-950">
+                <div className="grid grid-cols-3 border w-full border-sky-900 p-1 mt-10  bg-sky-950">
                     <span>Ledger Name</span>
                     <span>A/c No, Policy no, etc..</span>
                     <span>Ledger Group</span>
