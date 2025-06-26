@@ -2,7 +2,26 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import os
 import pandas as pd
+import numpy as np
 
+@api_view(['POST'])
+def bank_statement_reconfirmed(request):
+    data = request.data.get('transactions', None)
+
+    if not data:
+        return Response({'status': 'error', 'message': 'No transactions provided', "data": []})
+    
+    data = pd.DataFrame(data)
+    if data.columns != ["client_pan", "ledger_name", "ledger_group","date", "description", "debit", "credit", "balance"]:
+        return Response({'status': 'error', 'message': 'Invalid data format', "data": []})
+    
+    print(data.head())
+
+    return Response({
+        'status': 'success',
+        'message': 'Bank statement saved to database successfully',
+        'data': []
+    })
 
 @api_view(['POST'])
 def banking_upload(request):
@@ -75,12 +94,17 @@ def banking_upload(request):
                 data["closing_balance"] = data.apply(
                     lambda x: x['Balance'] if x['Dr / Cr.1'] == 'cr' else -x['Balance'], axis=1)
 
-                data = data[['Value Date', 'Description',
-                             'Chq / Ref No.', 'debit', 'credit', 'closing_balance']]
+                data = data[['client_pan',
+                             'ledger_name',
+                             'ledger_group',
+                             'Value Date', 
+                             'Description', 
+                             'debit', 
+                             'credit', 
+                             'closing_balance']]
                 data.rename(columns={
                     'Value Date': 'transaction_date',
                     'Description': 'description',
-                    'Chq / Ref No.': 'reference_no',
                     'debit': 'debit',
                     'credit': 'credit',
                     'closing_balance': 'balance'
@@ -88,11 +112,19 @@ def banking_upload(request):
         except Exception as e:
             return Response({'status': 'error', 'message': f'Error processing CSV file: {str(e)}', "data": []})
 
-        data.to_clipboard(index=False)
 
     if file.name.endswith('.xlsx'):
         # Process Excel file
         # Here you would add your logic to handle the Excel file
         pass
 
-    return Response({'status': 'success', 'message': 'Banking upload endpoint hit successfully', "data": []})
+    
+    data.dropna(inplace=True, how='all')
+    data = data.dropna(subset=["transaction_date"])
+    data = data[data["description"].notna()]
+    data.replace([np.inf, -np.inf], np.nan, inplace=True)
+    data.to_clipboard(index=False)
+
+    print(data.tail())
+
+    return Response({'status': 'success', 'message': 'Banking upload endpoint hit successfully', "data": data.to_dict(orient='records')})
