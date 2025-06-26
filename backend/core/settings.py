@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     "corsheaders",
 
     "user",
-    "masters"
+    "masters",
+    'transactions',
 
 ]
 

@@ -48,3 +48,18 @@ def search_ledgermaster(request):
     instruments = LedgerMaster.objects.filter(client_pan=client_pan).values()
 
     return Response({'status': 'success', 'data': list(instruments)})
+
+
+@api_view(['POST'])
+def fetch_ledger_groupwise(request):
+    client_pan = request.data.get('client_pan', "")
+    ledger_group = request.data.get('ledger_group', "")
+
+    try:
+        ledgers = LedgerMaster.objects.filter(
+            client_pan=client_pan, ledger_group=ledger_group).values()
+
+        data = list(ledgers)
+        return Response({'status': 'success', 'data': data})
+    except LedgerMaster.DoesNotExist:
+        return Response({'status': 'error', 'message': 'Ledger not found', "data": []})
