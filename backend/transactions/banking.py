@@ -4,18 +4,17 @@ import os
 import pandas as pd
 import numpy as np
 
+
 @api_view(['POST'])
 def bank_statement_reconfirmed(request):
     data = request.data.get('transactions', None)
 
     if not data:
         return Response({'status': 'error', 'message': 'No transactions provided', "data": []})
-    
+
     data = pd.DataFrame(data)
-    if data.columns != ["client_pan", "ledger_name", "ledger_group","date", "description", "debit", "credit", "balance"]:
+    if list(data.columns) != ["client_pan", "ledger_name", "ledger_group", "date", "description", "debit", "credit", "balance"]:
         return Response({'status': 'error', 'message': 'Invalid data format', "data": []})
-    
-    print(data.head())
 
     return Response({
         'status': 'success',
@@ -23,12 +22,14 @@ def bank_statement_reconfirmed(request):
         'data': []
     })
 
+
 @api_view(['POST'])
 def banking_upload(request):
 
     file = request.FILES.get('file', None)
     client_pan = request.data.get('client_pan', "")
     ledger_name = request.data.get('ledger_name', "")
+    data = pd.DataFrame()
 
     if not file:
         return Response({'status': 'error', 'message': 'No file provided', "data": []})
@@ -57,7 +58,6 @@ def banking_upload(request):
                 break
 
         header_index = None
-        df = pd.DataFrame()
         for index, line in enumerate(all_lines):
             if any(line.strip().startswith(template) for template in lookfor_templates):
                 header_index = index
@@ -97,10 +97,10 @@ def banking_upload(request):
                 data = data[['client_pan',
                              'ledger_name',
                              'ledger_group',
-                             'Value Date', 
-                             'Description', 
-                             'debit', 
-                             'credit', 
+                             'Value Date',
+                             'Description',
+                             'debit',
+                             'credit',
                              'closing_balance']]
                 data.rename(columns={
                     'Value Date': 'transaction_date',
@@ -109,22 +109,20 @@ def banking_upload(request):
                     'credit': 'credit',
                     'closing_balance': 'balance'
                 }, inplace=True)
+                data.dropna(inplace=True, how='all')
+                data = data.dropna(subset=["transaction_date"])
+                data = data[data["description"].notna()]
+                data.replace([np.inf, -np.inf], np.nan, inplace=True)
+
         except Exception as e:
             return Response({'status': 'error', 'message': f'Error processing CSV file: {str(e)}', "data": []})
-
 
     if file.name.endswith('.xlsx'):
         # Process Excel file
         # Here you would add your logic to handle the Excel file
         pass
 
-    
-    data.dropna(inplace=True, how='all')
-    data = data.dropna(subset=["transaction_date"])
-    data = data[data["description"].notna()]
-    data.replace([np.inf, -np.inf], np.nan, inplace=True)
-    data.to_clipboard(index=False)
+    if data.empty:
+        return Response({'status': 'error', 'message': 'Invalid statement format or empty data...', "data": []})
 
-    print(data.tail())
-
-    return Response({'status': 'success', 'message': 'Banking upload endpoint hit successfully', "data": data.to_dict(orient='records')})
+    return Response({'status': 'success', 'message': 'Bank statement successfully processed', "data": data.to_dict(orient='records')})
