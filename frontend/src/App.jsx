@@ -9,6 +9,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import Logout from "./components/Logout";
 import Instruments from "./pages/masters/Instruments";
 import Banking from "./assets/transactions/banking/Banking";
+import LedgerMaster from "./pages/masters/LedgerMaster";
 
 function App() {
     const [loggedIn, setLoggedIn] = useState(false);
@@ -39,7 +40,7 @@ function App() {
                             <Route path="/" element={<Dashboard />} />
 
                             <Route path="/masters">
-                                <Route path="ledger" element={<Instruments />} />
+                                <Route path="ledger" element={<LedgerMaster />} />
                             </Route>
 
                             <Route path="/transactions">

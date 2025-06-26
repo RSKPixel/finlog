@@ -44,7 +44,7 @@ label {
 }
 
 input {
-    @apply text-sm bg-white/60 text-gray-900 border-neutral-600 w-full rounded-sm p-1.5 focus:outline-none leading-tight;
+    @apply text-sm bg-white/60 text-gray-900 border-neutral-600 w-full rounded-sm p-1.5;
 }
 
 input:read-only {
@@ -52,7 +52,7 @@ input:read-only {
 }
 
 select {
-    @apply text-sm bg-white/60 text-gray-900 border-neutral-600 w-full rounded-sm p-1.5 focus:outline-none leading-tight appearance-none;
+    @apply text-sm bg-white/60 text-gray-900 border-neutral-600 w-full rounded-sm p-1.5;
 }
 button {
     @apply text-white text-sm py-1 px-2 w-24 rounded-sm bg-sky-700 cursor-pointer hover:bg-sky-500 text-center;

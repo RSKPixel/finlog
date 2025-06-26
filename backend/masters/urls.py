@@ -3,9 +3,9 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    path("instruments/update/", update_instrumentmaster,
-         name="save_instrumentmaster"),
-    path("instruments/search/", search_instrumentmaster,
-         name="search_instrumentmaster"),
+    path("ledger/update/", update_ledgermaster,
+         name="save_ledgermaster"),
+    path("ledger/search/", search_ledgermaster,
+         name="search_ledgermaster"),
 
 ]

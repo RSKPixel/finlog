@@ -1,14 +1,14 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import AuthContext from "../../templates/AuthContext";
 
-const Instruments = () => {
+const LedgerMaster = () => {
     const { api, token, client } = useContext(AuthContext);
     const newData = {
         action: "new",
         client_pan: client.pan,
-        instrument_name: "",
-        instrument_id: "",
-        instrument_group: "",
+        ledger_name: "",
+        ledger_ref_no: "",
+        ledger_group: "",
         folio_no: "",
         folio_name: "",
     };
@@ -16,15 +16,15 @@ const Instruments = () => {
     const [formMessage, setFormMessage] = useState([]);
     const validation = () => {
         const error = [];
-        if (!formData.instrument_name.trim()) error.push("Fields Marked * are mandatory");
-        if (!formData.instrument_id.trim()) error.push("Fields Marked * are mandatory");
-        if (!formData.instrument_group.trim()) error.push("Fields Marked * are mandatory");
+        if (!formData.ledger_name.trim()) error.push("Fields Marked * are mandatory");
+        // if (!formData.ledger_ref_no.trim()) error.push("Fields Marked * are mandatory");
+        if (!formData.ledger_group.trim()) error.push("Fields Marked * are mandatory");
         if (!formData.folio_no.trim()) error.push("Fields Marked * are mandatory");
         if (!formData.folio_name.trim()) error.push("Fields Marked * are mandatory");
         return [...new Set(error)];
     };
     const [showSearch, setShowSearch] = useState(false);
-    const instrumentNameRef = useRef(null);
+    const ledgerNameRef = useRef(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -45,7 +45,7 @@ const Instruments = () => {
             return;
         }
 
-        fetch(`${api}/masters/instruments/update/`, {
+        fetch(`${api}/masters/ledger/update/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -65,10 +65,10 @@ const Instruments = () => {
     const handleDelete = (e) => {
         const deleteData = {
             action: "delete",
-            instrument_name: formData.instrument_name,
+            ledger_name: formData.ledger_name,
         };
 
-        fetch(`${api}/masters/instruments/update/`, {
+        fetch(`${api}/masters/ledger/update/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -95,16 +95,16 @@ const Instruments = () => {
 
                 <form autoComplete="off" className="grid grid-cols-2 gap-2 border bg-stone-900 rounded-b-sm w-full p-3 border-sky-900">
                     <div className="flex flex-col gap-2">
-                        <label>Instrument Name *</label>
-                        <input ref={instrumentNameRef} type="text" className="uppercase" name="instrument_name" value={formData.instrument_name} onChange={handleChange} />
+                        <label>Ledger Name *</label>
+                        <input ref={ledgerNameRef} type="text" className="uppercase" name="ledger_name" value={formData.ledger_name} onChange={handleChange} />
                     </div>
                     <div className="flex flex-col gap-2">
-                        <label>Instrument ID *</label>
-                        <input type="text" name="instrument_id" value={formData.instrument_id} onChange={handleChange} />
+                        <label>A/c No, Policy no, etc..</label>
+                        <input type="text" name="ledger_ref_no" value={formData.ledger_ref_no} onChange={handleChange} />
                     </div>
                     <div className="flex flex-col gap-2 col-span-2">
-                        <label>Instrument Group *</label>
-                        <select value={formData.instrument_group} onChange={handleChange} name="instrument_group">
+                        <label>Ledger Group *</label>
+                        <select value={formData.ledger_group} onChange={handleChange} name="ledger_group">
                             <option value="">Select Ledger Group</option>
                             <option value="Bank">Bank</option>
                             <option value="Cash">Cash</option>
@@ -148,7 +148,7 @@ const Instruments = () => {
                         </button>
                         <button type="button" className="button-icon blue" onClick={() => {
                             setFormData(newData);
-                            instrumentNameRef.current.focus()
+                            LedgerNameRef.current.focus()
                         }}><i className="bi bi-plus-square"></i></button>
                         <button type="button" className="button-icon yellow" onClick={() => setShowSearch(true)}>
                             <i className="bi bi-search"></i>
@@ -158,18 +158,18 @@ const Instruments = () => {
             </div>
 
             {/* modal */}
-            <InstrumentsSearch setFormData={setFormData} showSearch={showSearch} setShowSearch={setShowSearch} />
+            <LedgerSearch setFormData={setFormData} showSearch={showSearch} setShowSearch={setShowSearch} />
         </div>
     );
 };
 
-const InstrumentsSearch = ({ setFormData, setShowSearch, showSearch }) => {
+const LedgerSearch = ({ setFormData, setShowSearch, showSearch }) => {
     const { api, token, client } = useContext(AuthContext);
     const [searchResults, setSearchResults] = useState([]);
     // const [selected, setSelected] = useState(show);
 
     useEffect(() => {
-        fetch(`${api}/masters/instruments/search/`, {
+        fetch(`${api}/masters/ledger/search/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -192,26 +192,26 @@ const InstrumentsSearch = ({ setFormData, setShowSearch, showSearch }) => {
             <div
                 className={`flex flex-col bg-neutral-900 border border-white/10 rounded-sm shadow-xl max-h-2/3 relative w-2/3 h-fit overflow-auto`}
             >
-                <div className="flex flex-row p-1 items-center font-bold text-sm bg-amber-700">
+                <div className="absolut w-full flex flex-row p-1 items-center font-bold text-sm bg-amber-700">
                     <span>Search Result</span>
                     <span className="ms-auto"></span>
                     <button type="button" className="button-icon red" onClick={() => setShowSearch(false)}>X</button>
                 </div>
                 <div className="grid grid-cols-3 border w-full border-sky-900 p-1  bg-sky-950">
-                    <span>Instrument Name</span>
-                    <span>Instrument ID</span>
-                    <span>Instrument Group</span>
+                    <span>Ledger Name</span>
+                    <span>A/c No, Policy no, etc..</span>
+                    <span>Ledger Group</span>
                 </div>
                 <div className="border bg-stone-900 p-1 w-full border-sky-900">
                     {searchResults.map((result) => (
-                        <div key={result.instrument_id} className="hover:bg-sky-800 cursor-pointer p-1 grid grid-cols-3"
+                        <div key={result.ledger_ref_no} className="hover:bg-sky-800 cursor-pointer p-1 grid grid-cols-3"
                             onClick={() => {
                                 setFormData(result);
                                 setShowSearch(false);
                             }}>
-                            <span>{result.instrument_name}</span>
-                            <span>{result.instrument_id}</span>
-                            <span>{result.instrument_group}</span>
+                            <span>{result.ledger_name}</span>
+                            <span>{result.ledger_ref_no}</span>
+                            <span>{result.ledger_group}</span>
                         </div>
                     ))}
                 </div>
@@ -220,4 +220,4 @@ const InstrumentsSearch = ({ setFormData, setShowSearch, showSearch }) => {
     );
 };
 
-export default Instruments;
+export default LedgerMaster;
