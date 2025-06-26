@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from transactions.models import BankStatement
 import os
 import pandas as pd
 import numpy as np
@@ -13,8 +14,21 @@ def bank_statement_reconfirmed(request):
         return Response({'status': 'error', 'message': 'No transactions provided', "data": []})
 
     data = pd.DataFrame(data)
-    if list(data.columns) != ["client_pan", "ledger_name", "ledger_group", "date", "description", "debit", "credit", "balance"]:
+    print(list(data.columns))
+    if list(data.columns) != ['client_pan', 'ledger_name', 'ledger_group', 'transaction_date', 'description', 'debit', 'credit', 'balance']:
         return Response({'status': 'error', 'message': 'Invalid data format', "data": []})
+
+    for index, row in data.iterrows():
+        # create or update the bank statement record
+        bank_statement, created = BankStatement.objects.update_or_create(
+            client_pan=row['client_pan'],
+            bank_ledger_name=row['ledger_name'],
+            transaction_date=row['transaction_date'],
+            description= row['description'],
+            debit=row['debit'],
+            credit=row['credit'],
+            balance=row['balance'],
+        )
 
     return Response({
         'status': 'success',

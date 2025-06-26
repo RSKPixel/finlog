@@ -127,11 +127,11 @@ const Authenticator = () => {
               </div>
             ))}
           <div className="flex flex-row gap-4 mt-4">
-            <button type="button" onClick={handleLogin}>
+            <button type="button" className="button-basic blue" onClick={handleLogin}>
               Log In
             </button>
             <div className="ms-auto"></div>
-            <button type="button" onClick={() => setRegistration(true)}>
+            <button type="button" className="button-basic yellow" onClick={() => setRegistration(true)}>
               Sign Up
             </button>
           </div>
@@ -259,11 +259,11 @@ const Registration = ({ setRegistration }) => {
             ))}
         </div>
         <div className="col-span-2 flex flex-row gap-4">
-          <button type="button" onClick={() => setRegistration(false)}>
+          <button type="button" className="button-basic blue" onClick={() => setRegistration(false)}>
             Login
           </button>
           <span className="ms-auto"></span>
-          <button type="button" onClick={handleSubmit}>
+          <button type="button" className="button-basic green" onClick={handleSubmit}>
             Save
           </button>
         </div>
