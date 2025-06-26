@@ -6,8 +6,8 @@ from django.db import models
 class BankStatement(models.Model):
     id = models.AutoField(primary_key=True)
     client_pan = models.CharField(max_length=10, blank=True, null=True)
-    ledger_name = models.CharField(max_length=100, blank=True, null=True)
-    ledger_group = models.CharField(max_length=50, blank=True, null=True)
+    bank_ledger_name = models.CharField(max_length=100, blank=True, null=True)
+    brs_ledger_name = models.CharField(max_length=100, blank=True, null=True)
     transaction_date = models.DateField(blank=True, null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     ref_no = models.CharField(max_length=50, blank=True, null=True)
