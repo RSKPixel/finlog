@@ -5,26 +5,24 @@ import { Link } from "react-router-dom";
 const Basetemplate = ({ children }) => {
   const { api, loggedIn, client } = useContext(AuthContext);
   const menu = {
-    Home: {
+    Portfolio: {
       Dashboard: "/",
-      "Client Profile": "/clientprofile",
+      "Mutual Funds": "/portfolio/mutualfunds",
+      Stocks: "/portfolio/stocks",
+      "Insurance": "/portfolio/insurance",
+      "Assets Management": "/portfolio/assetsmanagement",
     },
     Masters: {
       "Ledger Master": "/masters/ledger",
     },
     Transactions: {
       Banking: "/transactions/banking",
-      "Mutual Funds": "/transactions/mutualfunds",
-      Stocks: "/transactions/stocks",
-      Insurance: "/transactions/insurance",
-      "Assets Management": "/transactions/assetsmanagement",
       Loans: "/transactions/loans",
       "Opening Balance": "/transactions/openingbalance",
     },
     Reports: {
       "Investment Analysis": "/reports/investmentanalysis",
       "Tax Reports": "/reports/taxreports",
-      "Capital Gains": "/reports/capitalgains",
       "Net Worth": "/reports/networth",
     },
     Tools: {

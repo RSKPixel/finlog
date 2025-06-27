@@ -6,7 +6,7 @@ const SubMenu = ({ subMenu, activeSubMenu, setActiveSubMenu }) => {
             {subMenu.map((item, index) => (
                 <button
                     key={index}
-                    className={`button-basic font-bold border  text-sm text-white ${activeSubMenu === item ? "bg-blue-700 border-blue-700" : "bg-stone-900 border-white/50"}`}
+                    className={`button-basic font-bold border border-white/70 text-sm text-white ${activeSubMenu === item ? "bg-blue-700 border-blue-700" : "bg-stone-900"}`}
                     onClick={() => setActiveSubMenu(item)}
                 >
                     {item}

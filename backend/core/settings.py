@@ -17,6 +17,7 @@ pymysql.install_as_MySQLdb()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+MARKETDATA_API = "https://marketdata.trialnerror.in"
 
 
 # Quick-start development settings - unsuitable for production
@@ -49,6 +50,7 @@ INSTALLED_APPS = [
     "user",
     "masters",
     'transactions',
+    'portfolio',
 
 ]
 

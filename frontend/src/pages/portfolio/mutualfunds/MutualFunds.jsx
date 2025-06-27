@@ -1,0 +1,96 @@
+import React, { useContext, useEffect, useState } from 'react'
+import MutualFundsUpload from './MutualFundsUpload'
+import AuthContext from '../../../templates/AuthContext'
+import Loader from '../../../components/Loader'
+import numeral from 'numeral'
+const MutualFunds = () => {
+    const { api, token, client } = useContext(AuthContext)
+    const [loading, setLoading] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState("");
+    const [holdings, setHoldings] = useState([]);
+    const [summary, setSummary] = useState({
+        total_investment: 0,
+        total_current_value: 0,
+        pl: 0,
+        plp: 0,
+        xirr: 0,
+    });
+
+    useEffect(() => {
+        setLoading(true);
+        setLoadingMessage("Fetching Mutual Funds Holdings...");
+        fetch(`${api}/portfolio/mutualfund/holdings/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ client_pan: client.pan }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log(data);
+
+                setHoldings(data.data.summary_data.holdings || []);
+                setSummary(data.data.summary_data.summary)
+                setLoading(false);
+            })
+    }, [])
+
+    return (
+        <div className="flex flex-col gap-4 w-full items-center">
+            {loading && (
+                <Loader message={loadingMessage} />
+            )}
+            <div className="flex flex-col w-[90%] items-center">
+                <div className="grid grid-cols-4 gap-2 mb-4 text-xl w-full bg-stone-900 p-4 rounded-lg drop-shadow-lg border border-sky-900">
+                    <div className="text-gray-500 text-center">Total Investment</div>
+                    <div className="text-gray-500 text-center">Current Value</div>
+                    <div className="text-gray-500 text-center">Gain</div>
+                    <div className="text-gray-500 text-center">XIRR</div>
+
+                    <div className="text-center">{numeral(summary.total_investment).format("0,0.00")}</div>
+                    <div className="text-center">{numeral(summary.total_current_value).format("0,0.00")}</div>
+
+                    <div className={`text-center ${summary.pl >= 0 ? "text-green-500" : "text-red-500"}`}>
+                        {numeral(summary.pl).format("0,0.00")} ({numeral(summary.plp).format("0.00")}%)
+                    </div>
+
+                    <div className={`text-center ${summary.xirr >= 0 ? "text-green-500" : "text-red-500"}`}>
+                        {numeral(summary.xirr).format("0.00")}%
+                    </div>
+                </div>
+
+                <div className="w-full px-2 text-sm font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">Mutual Funds Holdings</div>
+                <div className="grid grid-cols-2 gap-2 items-center border bg-stone-900 rounded-b-sm w-full p-3 border-sky-900">
+                    {holdings.length > 0 &&
+                        holdings.map((holding, index) => {
+                            return (
+                                <div key={index} className="flex flex-col gap-2 border bg-neutral-800 border-neutral-950  rounded-lg p-4 mt-2 shadow-lg hover:bg-neutral-700 cursor-pointer">
+                                    <div className="text-sm font-bold text-nowrap overflow-hidden text-ellipsis">
+                                        {holding.instrument_name}
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2 ">
+                                        <div className="text-sm text-gray-500 text-center">Market Value</div>
+                                        <div className="text-sm text-gray-500 text-center">Total Return</div>
+                                        <div className="text-sm text-gray-500 text-center">XIRR</div>
+
+                                        <div className="text-center text-sm">{numeral(holding.current_value).format("0,0.00")}</div>
+                                        <div className={`text-center text-sm ${holding.pl >= 0 ? "text-green-500" : "text-red-500"}`}>
+                                            {numeral(holding.pl).format("0,0.00")} ({numeral(holding.plp).format("0.00")}%)
+                                        </div>
+                                        <div className={`text-center text-sm ${holding.xirr >= 0 ? "text-green-500" : "text-red-500"}`}>
+                                            {numeral(holding.xirr).format("0.00")}%
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                </div>
+            </div>
+            <MutualFundsUpload />
+        </div>
+    )
+}
+
+export default MutualFunds
