@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 :root {
-    /* font-family: system-ui, Avenir, Helvetica, Arial, sans-serif; */
-    font-family: quick-sand, system-ui, Avenir, Helvetica, Arial, sans-serif;
-    font-size: 16px;
-    line-height: 1.5;
-    font-weight: 400;
+  /* font-family: system-ui, Avenir, Helvetica, Arial, sans-serif; */
+  font-family: quick-sand, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 400;
 
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
-    @apply bg-zinc-950;
-    /* background-color: aliceblue; */
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+  @apply bg-zinc-950;
+  /* background-color: aliceblue; */
 
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 /* form.css */
 
@@ -40,44 +40,69 @@ select {
 } */
 
 label {
-    @apply text-sm font-semibold;
+  @apply text-sm font-semibold;
 }
 
 input {
-    @apply text-sm bg-white/60 text-gray-900 border-neutral-600 w-full rounded-sm p-1.5;
+  @apply text-sm bg-white/60 text-gray-900 border-neutral-600 w-full rounded-sm p-1.5;
 }
 
 input:read-only {
-    @apply cursor-not-allowed bg-white/30 text-gray-500;
+  @apply cursor-not-allowed bg-white/30 text-gray-500;
 }
 
 select {
-    @apply text-sm bg-white/60 text-gray-900 border-neutral-600 w-full rounded-sm p-1.5;
+  @apply text-sm bg-white/60 text-gray-900 border-neutral-600 w-full rounded-sm p-1.5;
 }
 /* button {
     @apply text-white text-sm py-1 px-2 w-24 rounded-sm bg-sky-700 cursor-pointer hover:bg-sky-500 text-center;
 } */
 
 .button-icon {
-    @apply text-white text-sm py-1 px-2 w-fit rounded-sm bg-sky-700 cursor-pointer hover:bg-sky-500 text-center flex items-center justify-center;
+  @apply text-white text-sm py-1 px-2 w-fit rounded-sm bg-sky-700 cursor-pointer hover:bg-sky-500 text-center flex items-center justify-center;
 }
 
 .button-basic {
-    @apply text-white py-1 px-2 w-fit rounded-sm cursor-pointer text-center;
+  @apply text-white py-1 px-2 w-fit rounded-sm cursor-pointer text-center;
 }
 
 .green {
-    @apply bg-green-700 hover:bg-green-400 border-green-700 hover:border-green-400;
+  @apply bg-green-700 hover:bg-green-400 border-green-700 hover:border-green-400;
 }
 
 .yellow {
-    @apply bg-yellow-600 hover:bg-yellow-400 border-yellow-600 hover:border-yellow-400;
+  @apply bg-yellow-600 hover:bg-yellow-400 border-yellow-600 hover:border-yellow-400;
 }
 
 .red {
-    @apply bg-red-700 hover:bg-red-400 border-red-700 hover:border-red-400;
+  @apply bg-red-700 hover:bg-red-400 border-red-700 hover:border-red-400;
 }
 
 .blue {
-    @apply bg-blue-700 hover:bg-blue-400 border-blue-700 hover:border-blue-400;
+  @apply bg-blue-700 hover:bg-blue-400 border-blue-700 hover:border-blue-400;
+}
+/* Applies to all scrollable elements */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1); /* soft white */
+  border-radius: 9999px; /* full pill shape */
+  transition: background-color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3); /* slightly more visible on hover */
+}
+
+/* Firefox Support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
