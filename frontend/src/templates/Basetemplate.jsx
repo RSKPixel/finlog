@@ -36,8 +36,8 @@ const Basetemplate = ({ children }) => {
       {/* Top Bar */}
       <div className="flex flex-row w-full justify-between items-center bg-sky-950 px-4 py-1 shadow text-stone-100 border-b border-sky-900">
         <div className="flex flex-col">
-          <h1 className="text-xl font-bold">WEALTH JOURNAL</h1>
-          <span className="text-xs italic font-bold text-gray-400">Power your financial wellbeing</span>
+          <h1 className="text-xl text-center font-bold">WEALTH JOURNEY</h1>
+          <span className="text-xs italic font-bold text-gray-400">Powering your financial wellbeing</span>
         </div>
         <div className="ms-auto" />
         <div className="flex flex-col">

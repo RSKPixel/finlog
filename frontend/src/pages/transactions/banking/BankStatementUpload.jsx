@@ -66,7 +66,7 @@ const BankStatementUpload = () => {
     };
 
     return (
-        <div className="flex flex-col w-[700px] items-center shadow-xl">
+        <div className="flex flex-col w-full items-center shadow-xl">
             <div className="w-full  px-2 text-sm font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">Bank Statement Upload</div>
             <form autoComplete="off" className="flex flex-col gap-2 border bg-stone-900 rounded-b-sm w-full p-3 border-sky-900">
                 <div className=" flex flex-row gap-2">
