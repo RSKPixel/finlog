@@ -25,29 +25,8 @@ def mutualfund_holdings(request):
 
     qs = PortfolioHoldings.objects.filter(
         client_pan=client_pan, portfolio=portfolio)
-
-    # Case 1: Both are 'All' → show all available asset classes and instruments
-    if asset_class == 'All' and instrument_name == 'All':
-        asset_classes = qs.values_list('asset_class', flat=True).distinct()
-        instruments = qs.values_list('instrument_name', flat=True).distinct()
-
-    # Case 2: asset_class is specific, instrument_name is 'All'
-    elif asset_class != 'All' and instrument_name == 'All':
-        asset_classes = [asset_class]  # Already selected
-        instruments = qs.filter(asset_class=asset_class).values_list(
-            'instrument_name', flat=True).distinct()
-
-    # Case 3: asset_class is 'All', instrument_name is specific
-    elif asset_class == 'All' and instrument_name != 'All':
-        instruments = [instrument_name]  # Already selected
-        asset_classes = qs.filter(instrument_name=instrument_name).values_list(
-            'asset_class', flat=True).distinct()
-
-    # Case 4: Both are specific → just confirm they exist and use them
-    else:
-        asset_classes = [asset_class]
-        instruments = qs.filter(asset_class=asset_class).values_list(
-            'instrument_name', flat=True).distinct()
+    asset_classes = qs.values_list('asset_class', flat=True).distinct()
+    instruments = qs.values_list('instrument_name', flat=True).distinct()
 
     filter = {'client_pan': client_pan, 'portfolio': portfolio}
 
@@ -55,6 +34,7 @@ def mutualfund_holdings(request):
     update_holdings_xirr(client_pan=client_pan, portfolio=portfolio)
     summary_data = holding_summary(client_pan=client_pan, portfolio=portfolio,
                                    asset_class=asset_class, instrument_name=instrument_name)
+
     progress_data = investment_progress(
         client_pan=client_pan, portfolio=portfolio, asset_class=asset_class, instrument_name=instrument_name)
 
@@ -81,7 +61,8 @@ def mutualfund_upload(request):
             "data": []
         })
 
-    save_path = os.path.join(settings.BASE_DIR, 'data', f"{client_pan}_CAMS.pdf")
+    save_path = os.path.join(settings.BASE_DIR, 'data',
+                             f"{client_pan}_CAMS.pdf")
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
     # Save file

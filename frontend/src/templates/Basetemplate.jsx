@@ -35,8 +35,8 @@ const Basetemplate = ({ children }) => {
     <div className="flex flex-col h-screen w-full">
       {/* Top Bar */}
       <div className="flex flex-row w-full justify-between items-center bg-sky-950 px-4 py-1 shadow text-stone-100 border-b border-sky-900">
-        <div className="flex flex-col">
-          <h1 className="text-xl text-center font-bold">WEALTH JOURNEY</h1>
+        <div className="flex flex-col cursor-pointer hover:text-yellow-300">
+          <h1 className="text-xl text-center font-bold ">WEALTH JOURNEY</h1>
           <span className="text-xs italic font-bold text-gray-400">Powering your financial wellbeing</span>
         </div>
         <div className="ms-auto" />
@@ -80,7 +80,7 @@ const Basetemplate = ({ children }) => {
         )}
 
         {/* Main Content */}
-        <div className="flex flex-col w-full bg-stone-800 p-4 overflow-auto">{children}</div>
+        <div className="flex flex-col w-full bg-stone-800 p-4 overflow-y-scroll scrollbar-thin scrollbar-track-stone-800 scrollbar-thumb-sky-900">{children}</div>
       </div>
     </div>
   );
