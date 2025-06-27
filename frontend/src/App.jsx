@@ -8,6 +8,7 @@ import Logout from "./components/Logout";
 import Banking from "./pages/transactions/banking/Banking";
 import LedgerMaster from "./pages/masters/LedgerMaster";
 import MutualFunds from "./pages/portfolio/mutualfunds/MutualFunds";
+import Stocks from "./pages/stocks/Stocks";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -47,7 +48,7 @@ function App() {
 
               <Route path="/portfolio">
                 <Route path="mutualfunds" element={<MutualFunds />} />
-                <Route path="stocks" element={<div>Stocks Page</div>} />
+                <Route path="stocks" element={<Stocks />} />
               </Route>
             </Route>
             <Route path="/logout" element={<Logout />} />

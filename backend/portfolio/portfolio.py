@@ -64,7 +64,7 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
 
     if portfolio == "All":
         filter['portfolio__in'] = [
-            "Equity", "Mutual Fund", "Bank"]
+            "Stocks", "Mutual Fund", "Bank"]
         filter.pop("portfolio")
 
     if asset_class == "All" or asset_class is None:
@@ -79,6 +79,23 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
 
     holdings_qs = PortfolioHoldings.objects.filter(
         **filter).values().order_by('-xirr')
+    
+    if holdings_qs.count() == 0:
+        return {
+            "holdings": [],
+            "summary": {
+                "client_pan": client_pan,
+                "portfolio": portfolio,
+                "asset_class": asset_class if asset_class else "All",
+                "total_investment": 0,
+                "total_current_value": 0,
+                "pl": 0,
+                "plp": 0,
+                "benchmark": 0,
+                "xirr": 0,
+            }
+        }
+    
     holdings_df = pd.DataFrame(list(holdings_qs))
     holdings_df['current_value'] = holdings_df['current_value'].astype(float)
     holdings_df['holding_value'] = holdings_df['holding_value'].astype(float)

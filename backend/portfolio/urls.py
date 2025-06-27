@@ -1,7 +1,7 @@
 from django.urls import path
 from .portfolio import *
 # from .insurance_views import *
-# from .equity_views import *
+from .equity_views import *
 from .mutualfund_views import *
 
 urlpatterns = [
@@ -14,8 +14,8 @@ urlpatterns = [
     path("mutualfund/holdings/", mutualfund_holdings, name="mutualfund_holdings"),
 
     #  Equity URLs
-#     path("equity/upload/", equity_upload, name="equity_upload"),
-#     path("equity/holdings/fetch/", equity_holdings, name="equity_holdings"),
+    path("stocks/upload/", equity_upload, name="equity_upload"),
+    path("stocks/holdings/", equity_holdings, name="equity_holdings"),
 
 #     # Insurance URLs
 #     path("insurance/upload/", insurance_upload, name="insurance"),

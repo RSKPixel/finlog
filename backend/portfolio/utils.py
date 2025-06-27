@@ -50,7 +50,7 @@ def update_holdings_xirr(client_pan, portfolio):
             item.xirr = 0
             print(f"Error calculating XIRR for {item.instrument_id}: {e}")
 
-        item.pl = float(item.current_value) - float(item.holding_value)
+        item.pl = float(item.current_value if item.current_value else 0) - float(item.holding_value)
         item.plp = (item.pl / item.holding_value * 100) if item.holding_value else 0
         item.cagr = 0
         item.save()
@@ -74,6 +74,7 @@ def update_holdings(client_pan, portfolio):
 
     holdings_data = pd.DataFrame(list(transactions))
     holdings_data = holdings_data.round(2)
+    holdings_data.to_clipboard(index=False)
 
     for _, row in holdings_data.iterrows():
         PortfolioHoldings.objects.update_or_create(
