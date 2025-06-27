@@ -42,7 +42,7 @@ const MutualFunds = () => {
             {loading && (
                 <Loader message={loadingMessage} />
             )}
-            <div className="flex flex-col w-[90%] items-center">
+            <div className="flex flex-col w-[95%] items-center">
                 <div className="grid grid-cols-4 gap-2 mb-4 text-xl w-full bg-stone-900 p-4 rounded-lg drop-shadow-lg border border-sky-900">
                     <div className="text-gray-500 text-center">Total Investment</div>
                     <div className="text-gray-500 text-center">Current Value</div>

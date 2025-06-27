@@ -39,7 +39,7 @@ const MutualFundsUpload = () => {
     };
 
     return (
-        <div className="flex flex-col w-[90%] items-center shadow-xl">
+        <div className="flex flex-col w-[95%] items-center shadow-xl">
             {loading && (
                 <Loader message={loadingMessage} />
             )}
