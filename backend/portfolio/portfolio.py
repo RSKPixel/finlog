@@ -53,13 +53,14 @@ def portfolio(request):
     })
 
 
-def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_name="All"):
+def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_name="All", folio_id="All"):
 
     filter = {
         "client_pan": client_pan,
         "portfolio": portfolio,
         "asset_class": asset_class,
-        "instrument_name": instrument_name
+        "instrument_name": instrument_name,
+        "folio_id": folio_id
     }
 
     if portfolio == "All":
@@ -72,6 +73,9 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
 
     if instrument_name == "All":
         filter.pop("instrument_name")
+
+    if folio_id == "All":
+        filter.pop("folio_id")
 
     if asset_class != "All" and asset_class is not None:
         filter["asset_class"] = asset_class

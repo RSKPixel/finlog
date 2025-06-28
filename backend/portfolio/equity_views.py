@@ -15,6 +15,7 @@ def equity_holdings(request):
     client_pan = request.data.get('client_pan')
     portfolio = request.data.get('portfolio', 'Stocks')
     instrument_name = request.data.get('instrument_name', "All")
+    folio_id = request.data.get('folio_id',"All")
 
     if not client_pan:
         return Response({"status": "error", "message": "Client PAN is required"})
@@ -22,11 +23,15 @@ def equity_holdings(request):
     update_holdings(client_pan=client_pan, portfolio=portfolio)
     update_eod()
     update_holdings_xirr(client_pan=client_pan, portfolio=portfolio)
-    summary_data = holding_summary(client_pan=client_pan, portfolio=portfolio, instrument_name=instrument_name)
+    summary_data = holding_summary(client_pan=client_pan, portfolio=portfolio, instrument_name=instrument_name, folio_id=folio_id)
     instruments = (PortfolioHoldings.objects
                    .filter(client_pan=client_pan, portfolio=portfolio)
                    .values_list('instrument_name', flat=True)
                    .distinct())
+    folios = (PortfolioHoldings.objects
+              .filter(client_pan=client_pan, portfolio=portfolio)
+              .values_list('folio_id', flat=True)
+              .distinct())
 
     progress_data = pd.DataFrame()
     # progress_data = investment_progress(
@@ -34,6 +39,7 @@ def equity_holdings(request):
     return Response({"status": "success", "data": {
         "summary_data": summary_data,
         "instruments": instruments,
+        "folios": folios,
         "progress": progress_data.to_dict(orient='records')
     }})
 
@@ -144,6 +150,7 @@ def update_eod():
     if status != 200:
         print(f"Failed to fetch EOD data: {status_message}")
         return
+
 
     eod_data['trade_date'] = pd.to_datetime(
         eod_data['trade_date'], errors='coerce').dt.date

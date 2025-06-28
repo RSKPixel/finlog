@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "masters",
     'transactions',
     'portfolio',
+    'marketdata',
 
 ]
 

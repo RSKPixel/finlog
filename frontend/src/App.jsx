@@ -9,6 +9,7 @@ import Banking from "./pages/transactions/banking/Banking";
 import LedgerMaster from "./pages/masters/LedgerMaster";
 import MutualFunds from "./pages/portfolio/mutualfunds/MutualFunds";
 import Stocks from "./pages/stocks/Stocks";
+import MarketData from "./pages/tools/marketdata/MarketData";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -49,6 +50,10 @@ function App() {
               <Route path="/portfolio">
                 <Route path="mutualfunds" element={<MutualFunds />} />
                 <Route path="stocks" element={<Stocks />} />
+              </Route>
+
+              <Route path="/tools">
+                <Route path="marketdata" element={<MarketData />} />
               </Route>
             </Route>
             <Route path="/logout" element={<Logout />} />

@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from marketdata.amfi import amfi_eod_fetch
 from portfolio.utils import fifo, update_holdings, marketdata_api_request, update_holdings_xirr
 from portfolio.portfolio import holding_summary, investment_progress
 from portfolio.models import PortfolioTransactions, PortfolioHoldings
@@ -317,6 +318,11 @@ def update_nav(client_pan):
     mf_eod, status, status_message = marketdata_api_request(
         f"{settings.MARKETDATA_API}/amfi/fetch-eod/")
     if status != 200:
+        print(f"Failed to fetch NAV data: {status_message}")
+        return False
+    
+    status_message, mf_eod = amfi_eod_fetch()
+    if status_message != "success":
         print(f"Failed to fetch NAV data: {status_message}")
         return False
 
