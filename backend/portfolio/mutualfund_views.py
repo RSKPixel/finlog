@@ -315,20 +315,10 @@ def update_nav(client_pan):
         **filter).values_list('instrument_id', flat=True).distinct()
     isin_list = list(isin_list)
 
-    mf_eod, status, status_message = marketdata_api_request(
-        f"{settings.MARKETDATA_API}/amfi/fetch-eod/")
-    if status != 200:
-        print(f"Failed to fetch NAV data: {status_message}")
-        return False
-    
     status_message, mf_eod = amfi_eod_fetch()
     if status_message != "success":
         print(f"Failed to fetch NAV data: {status_message}")
         return False
-
-    mf_eod["date"] = pd.to_datetime(
-        mf_eod["date"], format="%Y-%m-%d").dt.strftime("%Y-%m-%d")
-    mf_eod.drop(columns=["id"], inplace=True, errors='ignore')
 
     for isin in isin_list:
         eod = mf_eod[mf_eod['isin'] == isin]
@@ -349,8 +339,6 @@ def update_nav(client_pan):
         pl = round(current_value - holding_value, 2)
         plp = round((pl / holding_value) * 100, 2)
         mf.update(
-            # scheme_code=scheme_code,
-            # amc_code=amc_code,
             folio_name=amc,
             current_price=nav,
             current_price_date=nav_date,
