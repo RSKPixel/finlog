@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.urls import path
 from .amfi import *
+from .nse import *
 
 urlpatterns = [
-    path('amfi/eod/download/', amfi_download_eod, name='amfi_download_eod'),
-    path('amfi/historical/download/', amfi_historical_download,
-         name='amfi_download_historical'),
+    path('amfi/eod/download/', amfi_download_eod),
+    path('amfi/historical/download/', amfi_historical_download),
+
+    path('nse/eod/download/', nse_download_eod),
 
 ]

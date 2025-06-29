@@ -8,7 +8,7 @@ import Logout from "./components/Logout";
 import Banking from "./pages/transactions/banking/Banking";
 import LedgerMaster from "./pages/masters/LedgerMaster";
 import MutualFunds from "./pages/portfolio/mutualfunds/MutualFunds";
-import Stocks from "./pages/stocks/Stocks";
+import Stocks from "./pages/portfolio/stocks/Stocks";
 import MarketData from "./pages/tools/marketdata/MarketData";
 
 function App() {

@@ -74,7 +74,6 @@ def update_holdings(client_pan, portfolio):
 
     holdings_data = pd.DataFrame(list(transactions))
     holdings_data = holdings_data.round(2)
-    holdings_data.to_clipboard(index=False)
 
     for _, row in holdings_data.iterrows():
         PortfolioHoldings.objects.update_or_create(
@@ -162,7 +161,7 @@ def xirr(cashflows, dates):
         return sum(float(cf) / ((1 + rate) ** ((d - dates[0]).days / 365.0)) for cf, d in zip(cashflows, dates))
 
     try:
-        return brentq(npv, -0.9999, 10.0)  # Search for the root in a wide range
+        return brentq(npv, -0.9999, 100.0)  # Search for the root in a wide range
     except ValueError:
         return None  # No valid root found
 

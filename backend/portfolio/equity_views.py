@@ -1,8 +1,9 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from portfolio.models import PortfolioTransactions, PortfolioHoldings
-from portfolio.utils import fifo, update_holdings, marketdata_api_request, update_holdings_xirr
+from portfolio.utils import fifo, update_holdings, update_holdings_xirr
 from portfolio.portfolio import holding_summary, investment_progress
+from marketdata.nse import nse_eod_fetch
 import pandas as pd
 import numpy as np
 from django.db import transaction
@@ -145,16 +146,12 @@ def equity_upload(request):
 
 
 def update_eod():
-    eod_data, status, status_message = marketdata_api_request(
-        f"{settings.MARKETDATA_API}/nse/eod/fetch/")
-    if status != 200:
+    status_message, eod_data = nse_eod_fetch()
+
+    if status_message != 'EOD data fetched successfully':
         print(f"Failed to fetch EOD data: {status_message}")
         return
-
-
-    eod_data['trade_date'] = pd.to_datetime(
-        eod_data['trade_date'], errors='coerce').dt.date
-
+    
     eod = eod_data.rename(columns={
         "close": "current_price",
         "trade_date": "current_price_date"

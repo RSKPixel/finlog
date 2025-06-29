@@ -1,18 +1,126 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from marketdata.amfi import amfi_eod_fetch
-from portfolio.utils import fifo, update_holdings, marketdata_api_request, update_holdings_xirr
+from marketdata.amfi import amfi_eod_fetch, amfi_historical_fetch, amfi_historical_resampled
+from portfolio.utils import fifo, update_holdings, update_holdings_xirr
 from portfolio.portfolio import holding_summary, investment_progress
 from portfolio.models import PortfolioTransactions, PortfolioHoldings
+
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Sum
 import os
 import pandas as pd
 import pdfplumber
 import re
 import requests
 import numpy as np
+from datetime import date, datetime
+from dateutil.relativedelta import relativedelta
 
+@api_view(['POST'])
+def fundsummary(request):
+    client_pan = request.data.get('client_pan')
+    instrument_id = request.data.get('instrument_id')
+    folio_id = request.data.get('folio_id')
+
+    holding = PortfolioHoldings.objects.filter(
+        client_pan=client_pan,
+        folio_id=folio_id,
+        instrument_id=instrument_id
+    ).values().first()
+
+    transactions  = PortfolioTransactions.objects.filter(
+        client_pan=client_pan,
+        folio_id=folio_id,
+        instrument_id=instrument_id,
+        balance_units__gt=0
+    ).values('transaction_date', 'holding_value', 'balance_units', 'unit_price').order_by('transaction_date')
+
+    status_message, nav = amfi_historical_fetch(instrument_id)
+    if status_message != "success":
+        nav = pd.DataFrame(columns=["date","isin","scheme_code","nav","scheme_name","amc_name"])
+        yearly = pd.DataFrame(columns=["date", "open", "high", "low", "close"])
+        print(f"Failed to fetch NAV data: {status_message}")
+
+    df = pd.DataFrame(transactions)
+    df['holding_value'] = df['holding_value'].astype(float)
+    df['balance_units'] = df['balance_units'].astype(float)
+    df['transaction_date'] = pd.to_datetime(df['transaction_date'])
+    start_date = df['transaction_date'].min()
+    end_date = datetime.now()
+
+    nav['date'] = pd.to_datetime(nav['date'])
+    nav = nav[(nav['date'] >= start_date) & (nav['date'] <= end_date)]
+    yearly = (nav.groupby(nav['date'].dt.year)
+                .agg(open=('nav', 'first'),
+                    high=('nav', 'max'),
+                    low=('nav', 'min'),
+                    close=('nav', 'last'),
+                    mean=('nav', 'mean'),
+                    ).reset_index()
+                    .rename(columns={'date': 'year'})  
+            )
+
+    purchase_analysis = (
+        df[df['balance_units'] > 0]
+        .assign(year=df['transaction_date'].dt.year)
+        .groupby('year')
+        .agg({'balance_units': 'sum', 'holding_value': 'sum'})
+        .reset_index()
+    )
+
+    purchase_analysis["avg_nav"] = purchase_analysis['holding_value'] / purchase_analysis['balance_units']
+    purchase_analysis = purchase_analysis.merge(yearly[['year', 'mean' ,'high','low',]], on='year', how='left')
+    purchase_analysis["efficency_ratio"] = round((purchase_analysis["high"] - purchase_analysis["avg_nav"]) / (purchase_analysis["high"] - purchase_analysis["low"]),2)
+
+
+    cutoff_date = pd.to_datetime(date.today() - relativedelta(years=1))
+    long = df[df['transaction_date'] < cutoff_date]
+    short = df[df['transaction_date'] >= cutoff_date]
+    longterm_holdings = {
+        "value":long['holding_value'].sum(), 
+        "units": long['balance_units'].sum(),
+        "nav": long['holding_value'].sum() / long['balance_units'].sum() if long['balance_units'].sum() > 0 else 0,
+        "pl": long["balance_units"].sum() * holding['current_price'] - long["holding_value"].sum(),
+        }
+    shortterm_holdings = {
+        "value":short['holding_value'].sum(), 
+        "units": short['balance_units'].sum(),
+        "nav": short['holding_value'].sum() / short['balance_units'].sum() if short['balance_units'].sum() > 0 else 0,
+        "pl": short["balance_units"].sum() * holding['current_price'] - short["holding_value"].sum(),
+        }
+    
+    status_message, nav_changes = amfi_historical_resampled(instrument_id)
+    if status_message != "success":
+        nav_changes = pd.DataFrame(columns=["date", "isin", "scheme_code", "nav", "scheme_name", "amc_name"])
+        print(f"Failed to fetch NAV changes data: {status_message}")
+
+    nav_changes['date'] = pd.to_datetime(nav_changes['date'])
+    nav_changes['year'] = pd.to_datetime(nav_changes['date']).dt.year
+    nav_changes['month'] = pd.to_datetime(nav_changes['date']).dt.month
+    nav_changes = nav_changes[['year', 'month', 'change']]
+    
+    grouped = nav_changes.groupby(['year', 'month'])['change'].first().unstack(fill_value=None)
+    grouped = grouped.replace([np.inf, -np.inf], np.nan)
+
+    nav_changes_yearly = []
+    for year, row in grouped.iterrows():
+        changes = [None if pd.isna(val) else val for val in row]
+        nav_changes_yearly.append({"year": year, "changes": changes})
+
+    return Response({
+        "status": "success", 
+        "data": {
+            "longterm_holdings": longterm_holdings, 
+            "shortterm_holdings": shortterm_holdings, 
+            "transactions": df.to_dict(orient='records'), 
+            "holding": holding,
+            "nav_yearly": yearly.to_dict(orient='records'),
+            "nav_daily": nav.to_dict(orient='records'),
+            "purchase_analysis": purchase_analysis.to_dict(orient='records'),
+            "nav_changes": list(reversed(nav_changes_yearly)),
+            }
+        })  
 
 @api_view(['POST'])
 def mutualfund_holdings(request):
@@ -49,7 +157,6 @@ def mutualfund_holdings(request):
             "progress": progress_data.to_dict(orient='records'),
         }})
 
-
 @api_view(['POST'])
 def mutualfund_upload(request):
     file = request.FILES.get('file')
@@ -84,7 +191,7 @@ def mutualfund_upload(request):
             'amc': 'folio_name',
             'assetclass': 'asset_class',
             'isin': 'instrument_id',
-            'trade_date': 'transaction_date',
+            'transaction_date': 'transaction_date',
             'trade_type': 'transaction_type',
             'nav': 'unit_price',
             'trade_value': 'amount',
@@ -127,7 +234,6 @@ def mutualfund_upload(request):
             "data": []
         })
 
-    data.to_clipboard(index=False, header=True)
     with transaction.atomic():
         for _, row in data.iterrows():
             PortfolioTransactions.objects.update_or_create(
@@ -166,7 +272,6 @@ def mutualfund_upload(request):
         "message": "Mutual Fund Uploaded Successfully",
         "data": data.to_dict(orient='records')
     })
-
 
 def camspdf_extraction(pdf_path, password=None, client_pan=None):
 
@@ -262,13 +367,13 @@ def camspdf_extraction(pdf_path, password=None, client_pan=None):
     df['description'] = df['units'].apply(lambda x: 'IN' if x > 0 else 'OUT')
     outputfile = os.path.join(settings.BASE_DIR, "data/output.csv")
     newdf = pd.DataFrame(columns=["client_pan", "folio", "fund_name", "amc", "assetclass",
-                         'symbol', "name", "isin", 'trade_date', 'trade_type', 'nav', 'quantity', "trade_value"])
+                         'symbol', "name", "isin", 'transaction_date', 'trade_type', 'nav', 'quantity', "trade_value"])
     newdf["client_pan"] = df["client_pan"]
     newdf["isin"] = df["isin"]
     newdf["folio"] = df["folio"]
     newdf["fund_name"] = df["fund_name"]
     newdf["amc"] = df["amc_name"]
-    newdf["trade_date"] = df["date"]
+    newdf["transaction_date"] = df["date"]
     newdf["trade_type"] = df["description"]
     newdf["trade_value"] = df["investment_amount"]
     newdf["units"] = df["units"].round(3)
@@ -277,7 +382,6 @@ def camspdf_extraction(pdf_path, password=None, client_pan=None):
     newdf.to_csv(outputfile, index=False)
 
     return newdf
-
 
 def search_isin(isin, amfi_data):
 
@@ -305,7 +409,6 @@ def search_isin(isin, amfi_data):
                 return amc_name, fund_name, nav
 
     return None, None, None
-
 
 def update_nav(client_pan):
 
@@ -347,3 +450,4 @@ def update_nav(client_pan):
             plp=plp
         )
     return True
+

@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import StocksUpload from "./StocksUpload";
-import AuthContext from "../../templates/AuthContext";
+import AuthContext from "../../../templates/AuthContext";
 import numeral from "numeral";
-import Loader from "../../components/Loader";
-import DisplayFormMessage from "../../components/DisplayFormMessage";
+import Loader from "../../../components/Loader";
+import DisplayFormMessage from "../../../components/DisplayFormMessage";
 
 const Stocks = () => {
   const { api, token, client } = useContext(AuthContext);
@@ -106,11 +106,11 @@ const Stocks = () => {
                     <div className="text-sm text-gray-500 text-center">Total Return</div>
                     <div className="text-sm text-gray-500 text-center">XIRR</div>
 
-                    <div className="text-center">{numeral(holding.current_value / 1000).format("0,0.00")}k</div>
-                    <div className={`text-center ${holding.pl >= 0 ? "text-green-500" : "text-red-500"}`}>
+                    <div className="text-center text-sm">{numeral(holding.current_value / 1000).format("0,0.00")}k</div>
+                    <div className={`text-center text-sm ${holding.pl >= 0 ? "text-green-500" : "text-red-500"}`}>
                       {numeral(holding.pl / 1000).format("0,0.00")}k ({numeral(holding.plp).format("0.00")}%)
                     </div>
-                    <div className={`text-center ${holding.xirr >= 0 ? "text-green-500" : "text-red-500"}`}>{numeral(holding.xirr).format("0.00")}%</div>
+                    <div className={`text-center text-sm ${holding.xirr >= 0 ? "text-green-500" : "text-red-500"}`}>{numeral(holding.xirr).format("0.00")}%</div>
                   </div>
                 </div>
               );

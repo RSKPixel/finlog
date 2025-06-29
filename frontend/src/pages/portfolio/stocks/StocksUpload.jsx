@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
-import AuthContext from '../../templates/AuthContext';
-import Loader from '../../components/Loader';
-import DisplayFormMessage from '../../components/DisplayFormMessage';
+import AuthContext from '../../../templates/AuthContext';
+import Loader from '../../../components/Loader';
+import DisplayFormMessage from '../../../components/DisplayFormMessage';
 
 const StocksUpload = () => {
     const { api, token, client } = useContext(AuthContext);

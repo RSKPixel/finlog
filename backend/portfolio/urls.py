@@ -7,11 +7,12 @@ from .mutualfund_views import *
 urlpatterns = [
     # Portfolio URLs
     path("summary/", portfolio, name="summary"),
-    path("yrly/", investment_progress_yearly, name="yearly_summary"),
+    path("yrly/", investment_progress_yearly,),
 
     # Mutual Fund URLs
-    path("mutualfund/upload/", mutualfund_upload, name="mutualfund_upload"),
-    path("mutualfund/holdings/", mutualfund_holdings, name="mutualfund_holdings"),
+    path("mutualfund/upload/", mutualfund_upload,),
+    path("mutualfund/holdings/", mutualfund_holdings,),
+    path("mutualfund/holdings/details/", fundsummary),
 
     #  Equity URLs
     path("stocks/upload/", equity_upload, name="equity_upload"),

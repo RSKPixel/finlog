@@ -51,111 +51,6 @@ def amfi_historical_download(request):
     except Exception as e:
         return Response({"message": str(e), "data": []})
 
-
-def amfi_historical_data(isin, scheme_code, amc_code, period=1825):
-
-    tdate = datetime.now().strftime('%d-%b-%Y')
-    fdate = (datetime.now() - timedelta(days=period)).strftime('%d-%b-%Y')
-
-    session = requests.Session()
-    data = {
-        'mfID': amc_code,
-        'scID': scheme_code,
-        'fDate': fdate,
-        'tDate': tdate
-    }
-    response = session.post(
-        'https://www.amfiindia.com/modules/NavHistoryPeriod', data=data)
-
-    if response.status_code == 200:
-        html_content = response.text
-        response_file = os.path.join(
-            settings.BASE_DIR, "data", "response.html")
-        open(response_file, "w").write(html_content)
-    else:
-        print(f"Failed to retrieve data. Status code: {response.status_code}")
-        return
-
-    try:
-        soup = BeautifulSoup(html_content, 'html.parser')
-        table = soup.find('table', class_='nav-resut-tble')
-        rows = table.find_all('tr')
-
-        data = []
-
-        amc_name = rows[1].find_all('th')[0].text.strip()
-        scheme_name = rows[3].find_all('th')[0].text.strip()
-    except Exception as e:
-        print("continued with an error for ", amc_code, scheme_code, isin)
-        return
-
-    for row in rows[5:]:
-        cells = row.find_all('td')
-        if len(cells) > 0:
-            nav_value = cells[0].text.strip()
-            repurchase_price = cells[1].text.strip() if cells[1] else ""
-            sale_price = cells[2].text.strip() if cells[2] else ""
-            nav_date = cells[3].text.strip()
-            data.append([nav_date, isin, scheme_code,
-                        nav_value, scheme_name, amc_name])
-
-    columns = ['date', 'isin', 'scheme_code', 'nav', 'scheme_name', 'amc_name']
-    df = pd.DataFrame(data, columns=columns)
-    df['date'] = pd.to_datetime(
-        df['date'], format='%d-%b-%Y').dt.strftime('%Y-%m-%d')
-    df['nav'] = pd.to_numeric(df['nav'], errors='coerce')
-    df = df.drop_duplicates(subset=['scheme_code', 'date'])
-    df = df.sort_values(by=['scheme_code', 'date']).reset_index(drop=True)
-    os.remove(response_file)  # Clean up the temporary HTML file
-
-    # Lookup existing data using composite key (scheme_code, date)
-    existing_qs = MutualFundsHistorical.objects.filter(
-        scheme_code=scheme_code,
-        date__range=[df['date'].min(), df['date'].max()]
-    )
-    existing_map = {
-        (obj.scheme_code, obj.date.strftime('%Y-%m-%d')): obj
-        for obj in existing_qs
-    }
-
-    objects_to_create = []
-    objects_to_update = []
-
-    for _, row in df.iterrows():
-        key = (row['scheme_code'], row['date'])
-        obj = MutualFundsHistorical(
-            date=row['date'],
-            scheme_code=row['scheme_code'],
-            scheme_name=row['scheme_name'],
-            amc_name=row['amc_name'],
-            isin=row['isin'],
-            nav=row['nav']
-        )
-        if key in existing_map:
-            obj.id = existing_map[key].id
-            objects_to_update.append(obj)
-        else:
-            objects_to_create.append(obj)
-
-    if objects_to_create:
-        with transaction.atomic():
-            MutualFundsHistorical.objects.bulk_create(
-                objects_to_create, batch_size=500)
-    if objects_to_update:
-        with transaction.atomic():
-            MutualFundsHistorical.objects.bulk_update(
-                objects_to_update,
-                fields=['scheme_name', 'amc_name', 'isin', 'nav'],
-                batch_size=500
-            )
-
-    msg = (
-        f"Historical data for {scheme_code} ({isin}) saved. "
-        f"Total records: {len(df)}, Created: {len(objects_to_create)}, Updated: {len(objects_to_update)}"
-    )
-    return msg
-
-
 @api_view(['GET'])
 def amfi_download_eod(request):
     try:
@@ -278,6 +173,197 @@ def amfi_download_eod(request):
         os.remove(nav_amfi_csv)
         return Response({"message": e, "data": []})
 
+def amfi_historical_data(isin, scheme_code, amc_code, period=1825):
+
+    tdate = datetime.now().strftime('%d-%b-%Y')
+    fdate = (datetime.now() - timedelta(days=period)).strftime('%d-%b-%Y')
+
+    session = requests.Session()
+    data = {
+        'mfID': amc_code,
+        'scID': scheme_code,
+        'fDate': fdate,
+        'tDate': tdate
+    }
+    response = session.post(
+        'https://www.amfiindia.com/modules/NavHistoryPeriod', data=data)
+
+    if response.status_code == 200:
+        html_content = response.text
+        response_file = os.path.join(
+            settings.BASE_DIR, "data", "response.html")
+        open(response_file, "w").write(html_content)
+    else:
+        print(f"Failed to retrieve data. Status code: {response.status_code}")
+        return
+
+    try:
+        soup = BeautifulSoup(html_content, 'html.parser')
+        table = soup.find('table', class_='nav-resut-tble')
+        rows = table.find_all('tr')
+
+        data = []
+
+        amc_name = rows[1].find_all('th')[0].text.strip()
+        scheme_name = rows[3].find_all('th')[0].text.strip()
+    except Exception as e:
+        print("continued with an error for ", amc_code, scheme_code, isin)
+        return
+
+    for row in rows[5:]:
+        cells = row.find_all('td')
+        if len(cells) > 0:
+            nav_value = cells[0].text.strip()
+            repurchase_price = cells[1].text.strip() if cells[1] else ""
+            sale_price = cells[2].text.strip() if cells[2] else ""
+            nav_date = cells[3].text.strip()
+            data.append([nav_date, isin, scheme_code,
+                        nav_value, scheme_name, amc_name])
+
+    columns = ['date', 'isin', 'scheme_code', 'nav', 'scheme_name', 'amc_name']
+    df = pd.DataFrame(data, columns=columns)
+    df['date'] = pd.to_datetime(
+        df['date'], format='%d-%b-%Y').dt.strftime('%Y-%m-%d')
+    df['nav'] = pd.to_numeric(df['nav'], errors='coerce')
+    df = df.drop_duplicates(subset=['scheme_code', 'date'])
+    df = df.sort_values(by=['scheme_code', 'date']).reset_index(drop=True)
+    os.remove(response_file)  # Clean up the temporary HTML file
+
+    # Lookup existing data using composite key (scheme_code, date)
+    existing_qs = MutualFundsHistorical.objects.filter(
+        scheme_code=scheme_code,
+        date__range=[df['date'].min(), df['date'].max()]
+    )
+    existing_map = {
+        (obj.scheme_code, obj.date.strftime('%Y-%m-%d')): obj
+        for obj in existing_qs
+    }
+
+    objects_to_create = []
+    objects_to_update = []
+
+    for _, row in df.iterrows():
+        key = (row['scheme_code'], row['date'])
+        obj = MutualFundsHistorical(
+            date=row['date'],
+            scheme_code=row['scheme_code'],
+            scheme_name=row['scheme_name'],
+            amc_name=row['amc_name'],
+            isin=row['isin'],
+            nav=row['nav']
+        )
+        if key in existing_map:
+            obj.id = existing_map[key].id
+            objects_to_update.append(obj)
+        else:
+            objects_to_create.append(obj)
+
+    if objects_to_create:
+        with transaction.atomic():
+            MutualFundsHistorical.objects.bulk_create(
+                objects_to_create, batch_size=500)
+    if objects_to_update:
+        with transaction.atomic():
+            MutualFundsHistorical.objects.bulk_update(
+                objects_to_update,
+                fields=['scheme_name', 'amc_name', 'isin', 'nav'],
+                batch_size=500
+            )
+
+    msg = (
+        f"Historical data for {scheme_code} ({isin}) saved. "
+        f"Total records: {len(df)}, Created: {len(objects_to_create)}, Updated: {len(objects_to_update)}"
+    )
+    return msg
+
+def amfi_historical_fetch(isin, from_date=None, to_date=None):
+
+    data = pd.DataFrame()
+    if not isin:
+        return "ISIN is required", data
+
+    filter_kwargs = {
+        'date__gte': from_date,
+        'date__lte': to_date,
+        'isin': isin
+    }
+
+    if not from_date or not to_date:
+        del filter_kwargs['date__gte']
+        del filter_kwargs['date__lte']
+
+    try:
+        data = MutualFundsHistorical.objects.filter(**filter_kwargs).values()
+        
+        data = pd.DataFrame(list(data))
+        if data.empty:
+            return "No data found", data
+        
+        return "success", data
+    
+    except Exception as e:
+        return str(e), data
+
+def amfi_historical_resampled(isin, from_date=None, to_date=None, frequency='ME'):
+
+    data = pd.DataFrame()
+
+    if frequency not in ['W', 'M', 'Q', 'Y', 'ME']:
+        return "Invalid frequency. Use W, M, Q, Y, or ME.", data
+    if not isin:
+        return "ISIN is required", data
+
+    filter_kwargs = {
+        'date__gte': from_date,
+        'date__lte': to_date,
+        'isin': isin
+    }
+
+    if not from_date or not to_date:
+        del filter_kwargs['date__gte']
+        del filter_kwargs['date__lte']
+
+    data = MutualFundsHistorical.objects.filter(**filter_kwargs).values()
+    data = pd.DataFrame(list(data))
+
+    if data.empty:
+        return "No data found", data
+
+    df = data.copy()
+    df['date'] = pd.to_datetime(df['date'])
+    df['nav'] = pd.to_numeric(df['nav'], errors='coerce')
+
+    resampled_data = df.resample(frequency, on='date')
+    resampled_data = pd.DataFrame({
+        'date': resampled_data['date'].last().index,
+        'scheme_code': resampled_data['scheme_code'].first(),
+        'scheme_name': resampled_data['scheme_name'].first(),
+        'amc_name': resampled_data['amc_name'].first(),
+        'isin': resampled_data['isin'].first(),
+        'open': resampled_data['nav'].first(),
+        'high': resampled_data['nav'].max(),
+        'low': resampled_data['nav'].min(),
+        'close': resampled_data['nav'].last(),
+    })
+
+    resampled_data['open'] = resampled_data['open'].astype(float)
+    resampled_data['high'] = resampled_data['high'].astype(float)
+    resampled_data['low'] = resampled_data['low'].astype(float)
+    resampled_data['close'] = resampled_data['close'].astype(float)
+    resampled_data = resampled_data.reset_index(drop=True)
+    resampled_data = resampled_data.sort_values(by='date')
+
+    resampled_data['previous_close'] = resampled_data['close'].shift(1)
+    resampled_data['change'] = (resampled_data['close'] - resampled_data['previous_close']) / resampled_data['previous_close'] * 100
+    resampled_data['change'] = resampled_data['change'].round(2)
+
+    resampled_data.replace([np.inf, -np.inf], np.nan, inplace=True)
+    resampled_data = resampled_data.fillna(value=0)
+
+    resampled_data.reset_index(inplace=True)
+    resampled_data['date'] = resampled_data['date'].dt.strftime('%Y-%m-%d')
+
+    return "success", resampled_data
 
 def amfi_eod_fetch(amc_name=None, isin=None) -> pd.DataFrame:
 

@@ -10,6 +10,31 @@ const MarketData = () => {
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
 
+
+  const handleNseEodDownload = () => {
+    setLoading(true);
+    setLoadingMessage("Downloading NSE EOD Data...");
+
+    fetch(`${api}/marketdata/nse/eod/download/`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setLoading(false);
+        setLoadingMessage("");
+        setFormMessage([data.message]);
+      })
+      .catch((error) => {
+        setLoading(false);
+        setLoadingMessage("");
+        setFormMessage(["Error downloading NSE EOD Data. Please try again later."]);
+      });
+
+  }
+
   const handleAmfiEodDownload = () => {
     setLoading(true);
     setLoadingMessage("Downloading AMFI EOD Data...");
@@ -64,19 +89,19 @@ const MarketData = () => {
           <span>MARKET DATA GRABBER</span>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 w-full text-xl bg-stone-900 py-4 px-4 items-center justify-center rounded-b-sm shadow-lg border border-sky-900">
-          <div className="col-span-4 flex justify-center items-center gap-4">
-            <button className="button-basic green text-sm text-gray-400" onClick={handleAmfiEodDownload}>
-              Download AMFI EOD
-            </button>
-            <button className="button-basic green text-sm text-gray-400" onClick={handleAmfiHistoricalDownload}>
-              Download AMFI Historical
-            </button>
-            <button className="button-basic green text-sm text-gray-400">Download AMFI EOD</button>
-            <button className="button-basic green text-sm text-gray-400">Download AMFI EOD</button>
-          </div>
+        <div className="grid grid-cols-4 gap-2 w-full bg-stone-900 py-4 px-4 items-center justify-items-center rounded-b-sm shadow-lg border border-sky-900">
+          {/* <div className="col-span-4 flex justify-center items-center gap-4"> */}
+          <button className="button-basic green text-sm text-gray-400" onClick={handleAmfiEodDownload}>
+            Download AMFI EOD
+          </button>
+          <button className="button-basic green text-sm text-gray-400" onClick={handleAmfiHistoricalDownload}>
+            Download AMFI Historical
+          </button>
+          <button className="button-basic green text-sm text-gray-400" onClick={handleNseEodDownload}>Download NSE EOD</button>
+          <button className="button-basic green text-sm text-gray-400">Download NSE Historical</button>
+          {/* </div> */}
           {formMessage && (
-            <div className="w-full mt-4 col-span-4">
+            <div className="w-full  col-span-4">
               <DisplayFormMessage formMessage={formMessage} />
             </div>
           )}
