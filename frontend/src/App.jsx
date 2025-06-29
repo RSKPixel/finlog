@@ -20,7 +20,8 @@ function App() {
     email: "",
     phone: "",
   });
-  const api = "http://127.0.0.1:8000";
+  const api = import.meta.env.VITE_API;
+  // const api = "http://127.0.0.1:8000";
   const provider = {
     api,
     loggedIn,
