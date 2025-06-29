@@ -279,7 +279,6 @@ def investment_progress(client_pan, portfolio="All", asset_class="All", instrume
                                'debt_amount', 'debt_current_value', 'debt_holding_percentage',
                                'benchmark_value', 'peak', 'drawdown', 'xirr']]
 
-    progress_df.to_clipboard(index=False, header=True)
     # save_portfolio_progress(progress_df)
 
     return progress_df
@@ -382,7 +381,6 @@ def investment_progress_yearly(request):
         })
 
     xirr_df = xirr_df.round(2)    
-    xirr_df.to_clipboard(index=False, header=True)
 
     return Response({
         "status": "success",
