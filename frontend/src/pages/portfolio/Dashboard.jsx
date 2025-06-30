@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import AuthContext from "../../templates/AuthContext";
 import numeral from "numeral";
 import Loader from "../../components/Loader";
+import ProgressChart from "./ProgressChart";
 
 const Dashboard = () => {
   const { api, token, client } = useContext(AuthContext);
@@ -14,6 +15,8 @@ const Dashboard = () => {
     plp: 0,
     xirr: 0,
   });
+  const [progressData, setProgressData] = useState([]);
+
 
   useEffect(() => {
     setLoading(true);
@@ -29,6 +32,8 @@ const Dashboard = () => {
     })
       .then((response) => response.json())
       .then((data) => {
+        console.log("Portfolio Summary Data:", data);
+        setProgressData(data.data.progress);
         setSummary(
           data.data.summary || {
             total_investment: 0,
@@ -67,6 +72,15 @@ const Dashboard = () => {
           <div className={`text-center ${summary.xirr >= 0 ? "text-green-500" : "text-red-500"}`}>{numeral(summary.xirr).format("0.00")}%</div>
         </div>
       )}
+
+      {progressData.length > 0 && (
+        <ProgressChart
+          data={progressData}
+          setLoading={setLoading}
+          setLoadingMessage={setLoadingMessage}
+        />
+      )}
+
     </div>
   );
 };

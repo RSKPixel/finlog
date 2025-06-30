@@ -39,8 +39,9 @@ def portfolio(request):
         by=['holding_percentage'], ascending=False, inplace=True)
 
     progress_data = []
-    # progress_data = investment_progress(
-    #     client_pan=client_pan).to_dict(orient='records')
+    progress_data = investment_progress(
+        client_pan=client_pan).to_dict(orient='records')
+    
 
     return Response({
         "status": "success",
@@ -51,7 +52,6 @@ def portfolio(request):
             "summary": summary_data["summary"],
         }
     })
-
 
 def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_name="All", folio_id="All"):
 
@@ -151,7 +151,6 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
         }
     }
 
-
 def investment_progress(client_pan, portfolio="All", asset_class="All", instrument_name="All") -> pd.DataFrame:
 
     filter = {
@@ -162,7 +161,7 @@ def investment_progress(client_pan, portfolio="All", asset_class="All", instrume
     }
 
     if portfolio == "All":
-        filter['portfolio__in'] = ["Equity", "Mutual Fund", "Bank"]
+        filter['portfolio__in'] = ["Stocks", "Mutual Fund", "Bank"]
         filter.pop("portfolio")
 
     if asset_class == "All":
@@ -213,7 +212,7 @@ def investment_progress(client_pan, portfolio="All", asset_class="All", instrume
     progress_df["benchmark_value"] = 0.0
 
     # insurance = cv_insurance(progress_df[progress_df["portfolio"] == "Insurance"])
-    equity = cv_equity(progress_df[progress_df["portfolio"] == "Equity"])
+    equity = cv_equity(progress_df[progress_df["portfolio"] == "Stocks"])
     mutual_fund = cv_mf(progress_df[progress_df["portfolio"] == "Mutual Fund"])
 
     progress_df = pd.concat(
@@ -270,22 +269,14 @@ def investment_progress(client_pan, portfolio="All", asset_class="All", instrume
     progress_df['instrument_name'] = instrument_name
     progress_df['client_pan'] = client_pan
 
-    # progress_df = cv_insurance(
-    #     progress_df[progress_df["portfolio"] == "Insurance"])
-
     progress_df = progress_df[['client_pan', 'portfolio', 'asset_class', 'instrument_name', 'transaction_date',
                                'invested_value', 'current_value', 'investment', 'pl', 'plp',
                                'equity_amount', 'equity_current_value', 'equity_holding_percentage',
                                'debt_amount', 'debt_current_value', 'debt_holding_percentage',
                                'benchmark_value', 'peak', 'drawdown', 'xirr']]
-
-    # save_portfolio_progress(progress_df)
-
     return progress_df
 
-
 @api_view(['POST'])
-# def investment_progress_yearly(client_pan, portfolio="All") -> pd.DataFrame:
 def investment_progress_yearly(request):
     client_pan = request.data.get('client_pan')
     portfolio = request.data.get('portfolio', "All")
@@ -388,45 +379,6 @@ def investment_progress_yearly(request):
         "data": xirr_df.to_dict(orient='records')
     })
 
-
-# @transaction.atomic
-# def save_portfolio_progress(progress_df: pd.DataFrame):
-
-#     if progress_df.empty:
-#         return
-
-#     progress_df['transaction_date'] = pd.to_datetime(
-#         progress_df['transaction_date'], errors='coerce')
-
-#     for _, row in progress_df.iterrows():
-#         PortfolioProgress.objects.update_or_create(
-#             client_pan=row['client_pan'],
-#             portfolio=row['portfolio'],
-#             asset_class=row['asset_class'],
-#             instrument_name=row['instrument_name'],
-#             transaction_date=row['transaction_date'],
-#             defaults={
-#                 'invested_value': row['invested_value'],
-#                 'current_value': row['current_value'],
-#                 'investment': row['investment'],
-#                 'pl': row['pl'],
-#                 'plp': row['plp'],
-#                 'equity_amount': row['equity_amount'],
-#                 'equity_current_value': row['equity_current_value'],
-#                 'equity_holding_percentage': row['equity_holding_percentage'],
-#                 'debt_amount': row['debt_amount'],
-#                 'debt_current_value': row['debt_current_value'],
-#                 'debt_holding_percentage': row['debt_holding_percentage'],
-#                 'benchmark_value': row['benchmark_value'],
-#                 'peak': row['peak'],
-#                 'drawdown': row['drawdown'],
-#                 'xirr': row['xirr']
-#             }
-#         )
-
-#     return
-
-
 def cv_mf(data: pd.DataFrame) -> pd.DataFrame:
     if data.empty:
         return data
@@ -456,7 +408,6 @@ def cv_mf(data: pd.DataFrame) -> pd.DataFrame:
     mf["close"].dropna(inplace=True)
 
     return mf
-
 
 def cv_equity(data: pd.DataFrame) -> pd.DataFrame:
     if data.empty:
@@ -490,25 +441,3 @@ def cv_equity(data: pd.DataFrame) -> pd.DataFrame:
     equity["current_value"] = np.where(
         equity["current_value"] == 0, equity["amount"], equity["current_value"])
     return equity
-
-
-def cv_insurance(data: pd.DataFrame) -> pd.DataFrame:
-    if data.empty:
-        return data
-
-    annual = 6/100
-
-    data['amount'] = pd.to_numeric(data['amount'], errors='coerce')
-    data['transaction_date'] = pd.to_datetime(data['transaction_date'])
-    data["holding_period"] = (
-        pd.Timestamp.now().normalize() - data['transaction_date']).dt.days
-    data["current_value"] = data["amount"].cummax(
-    ) * (1 + annual / 365) ** 30
-
-    # i = 6/100/12
-    # data['current_value'] = (data['current_value'].shift(1).fillna(
-    #     0) * i) + data['current_value'].shift(1).fillna(0) + abs(data['investment'])
-
-    data = data.round(2)
-
-    return data
