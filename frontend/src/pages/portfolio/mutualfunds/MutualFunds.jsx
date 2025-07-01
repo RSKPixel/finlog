@@ -111,16 +111,18 @@ const MutualFunds = () => {
                                         <span className="ms-auto"></span>
                                         <span className="text-xs">{holding.asset_class}</span>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-2 ">
+                                    <div className="grid grid-cols-4 gap-2 ">
                                         <div className="text-sm text-gray-500 text-center">Market Value</div>
                                         <div className="text-sm text-gray-500 text-center">Total Return</div>
                                         <div className="text-sm text-gray-500 text-center">XIRR</div>
+                                        <div className="text-sm text-gray-500 text-center">Holding %</div>
 
                                         <div className="text-center text-sm">{numeral(holding.current_value / 1000).format("0,0.00")}k</div>
                                         <div className={`text-center text-sm ${holding.pl >= 0 ? "text-green-500" : "text-red-500"}`}>
                                             {numeral(holding.pl / 1000).format("0,0.00")}k ({numeral(holding.plp).format("0.00")}%)
                                         </div>
                                         <div className={`text-center text-sm ${holding.xirr >= 0 ? "text-green-500" : "text-red-500"}`}>{numeral(holding.xirr).format("0.00")}%</div>
+                                        <div className="text-center text-sm">{numeral(holding.holding_percentage).format("0.00")}%</div>
                                     </div>
                                 </div>
                             );
@@ -206,6 +208,35 @@ const FundDetails = ({ selectedFund, setSelectedFund }) => {
 
     }, []);
 
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+
+        fetch(`${api}/portfolio/mutualfund/holdings/update/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                client_pan: client.pan,
+                instrument_id: selectedFund.instrument_id,
+                folio_id: selectedFund.folio_id,
+                [name]: value,
+            }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                setHoldingSummary((prev) => ({
+                    ...prev,
+                    holding: {
+                        ...prev.holding,
+                        [name]: value,
+                    },
+                }));
+            })
+
+    }
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs">
             <div className="flex flex-col bg-neutral-900 border border-white/10 rounded-sm shadow-xl w-4/5 max-h-[80vh]">
@@ -261,7 +292,7 @@ const FundDetails = ({ selectedFund, setSelectedFund }) => {
                         <div>Asset Class</div>
                         <select
                             name="asset_class"
-                            // onChange={handleChange}
+                            onChange={handleChange}
                             value={holdingSummary.holding.asset_class}
                         >
                             <option value="Debt">Debt</option>

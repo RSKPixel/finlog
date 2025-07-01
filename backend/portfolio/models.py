@@ -42,6 +42,7 @@ class PortfolioHoldings(models.Model):
     xirr = models.FloatField(blank=True, null=True)
     current_price_date = models.DateField(blank=True, null=True)
     current_price = models.FloatField(blank=True, null=True)
+    goalpot = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         db_table = 'portfolio_holdings'

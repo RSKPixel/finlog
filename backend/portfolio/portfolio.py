@@ -108,6 +108,10 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
     total_plp = (total_pl / total_holding_value *
                  100) if total_holding_value else 0
 
+    holdings_df['holding_percentage'] = (
+        holdings_df['current_value'] / total_current_value * 100
+    ).fillna(0)
+
     filter["balance_units__gt"] = 0
     cash_flow_qs = (PortfolioTransactions.objects
                     .filter(**filter)
