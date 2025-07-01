@@ -35,7 +35,7 @@ const ProgressChart = ({
     "5Y": 60,
     All: 9999,
   };
-  const [selectedPeriod, setSelectedPeriod] = useState("36");
+  const [selectedPeriod, setSelectedPeriod] = useState("24");
   const [investmentProgress, setInvestmentProgress] = useState([]);
   const chartData = ["Investment Progress", "Drawdown", "Holding %", "Profit %"];
   const [selectedChartData, setSelectedChartData] = useState("Investment Progress");
@@ -98,7 +98,7 @@ const LineChartMonthly = ({ data, options = [] }) => {
   if (options.includes("Investment Progress")) {
     options = ["Investment Value", "Current Value"];
   } else if (options.includes("Holding %")) {
-    options = ["Equity Holding %", "Debt Holding %"];
+    options = ["Equity Holding %", "Debt Holding %", "Gold Holding %"];
   } else if (options.includes("Drawdown")) {
     options = ["Drawdown"];
   } else if (options.includes("Profit %")) {
@@ -190,6 +190,19 @@ const LineChartMonthly = ({ data, options = [] }) => {
       fill: false,
       backgroundColor: "rgba(153, 102, 255, 0.2)",
       borderColor: "rgba(153, 102, 255, 1)",
+      borderWidth: 1,
+      tension: 0.1,
+      pointRadius: 2,
+      pointHoverRadius: 5,
+      pointHoverBackgroundColor: "rgba(153, 102, 255, 1)",
+      pointHoverBorderColor: "rgba(153, 102, 255, 1)",
+    },
+    {
+      label: `Gold Holding %`,
+      data: data.map((item) => item.gold_holding_percentage),
+      fill: false,
+      backgroundColor: "rgba(153, 102, 255, 0.2)",
+      borderColor: "rgba(183, 202, 105, 1)",
       borderWidth: 1,
       tension: 0.1,
       pointRadius: 2,

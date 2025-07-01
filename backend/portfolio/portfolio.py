@@ -228,6 +228,10 @@ def investment_progress(client_pan, portfolio="All", asset_class="All", instrume
         progress_df['asset_class'] == 'Debt', progress_df['amount'], 0)
     progress_df['debt_current_value'] = np.where(
         progress_df['asset_class'] == 'Debt', progress_df['current_value'], 0)
+    progress_df['gold_amount'] = np.where(
+        progress_df['asset_class'] == 'Gold', progress_df['amount'], 0)
+    progress_df['gold_current_value'] = np.where(
+        progress_df['asset_class'] == 'Gold', progress_df['current_value'], 0)
 
     progress_df = progress_df.groupby(['transaction_date']).agg({
         'amount': 'sum',
@@ -236,6 +240,8 @@ def investment_progress(client_pan, portfolio="All", asset_class="All", instrume
         'equity_current_value': 'sum',
         'debt_amount': 'sum',
         'debt_current_value': 'sum',
+        'gold_amount': 'sum',
+        'gold_current_value': 'sum',
         'benchmark_value': 'sum',
     }).reset_index()
 
@@ -247,6 +253,9 @@ def investment_progress(client_pan, portfolio="All", asset_class="All", instrume
     ).fillna(0)
     progress_df['debt_holding_percentage'] = (
         progress_df['debt_current_value'] / progress_df['current_value'] * 100
+    ).fillna(0)
+    progress_df['gold_holding_percentage'] = (
+        progress_df['gold_current_value'] / progress_df['current_value'] * 100
     ).fillna(0)
 
     progress_df["investment"] = progress_df["amount"] - \
@@ -274,7 +283,8 @@ def investment_progress(client_pan, portfolio="All", asset_class="All", instrume
     progress_df = progress_df[['client_pan', 'portfolio', 'asset_class', 'instrument_name', 'transaction_date',
                                'invested_value', 'current_value', 'investment', 'pl', 'plp',
                                'equity_amount', 'equity_current_value', 'equity_holding_percentage',
-                               'debt_amount', 'debt_current_value', 'debt_holding_percentage',
+                               'debt_amount', 'debt_current_value', 'debt_holding_percentage', 'gold_amount',
+                               'gold_current_value', 'gold_holding_percentage',
                                'benchmark_value', 'peak', 'drawdown', 'xirr']]
     return progress_df
 

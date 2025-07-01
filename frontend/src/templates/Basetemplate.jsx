@@ -81,7 +81,7 @@ const Basetemplate = ({ children }) => {
         )}
 
         {/* Main Content */}
-        <div className="flex flex-col w-full bg-stone-800 p-4 overflow-y-scroll scrollbar-thin scrollbar-track-stone-800 scrollbar-thumb-sky-900">{children}</div>
+        <div className="flex flex-col w-full bg-stone-800 p-4 items-center overflow-y-scroll scrollbar-thin scrollbar-track-stone-800 scrollbar-thumb-sky-900">{children}</div>
       </div>
     </div>
   );

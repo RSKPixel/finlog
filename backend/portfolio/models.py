@@ -68,3 +68,26 @@ class FixedIncome(models.Model):
     class Meta:
         db_table = 'fixed_income'
         managed = True
+
+class Insurance(models.Model):
+    id = models.AutoField(primary_key=True)
+    client_pan = models.CharField(max_length=10, blank=True, null=True)
+    policy_name = models.CharField(max_length=100, blank=True, null=True)
+    policy_no = models.CharField(max_length=50, blank=True, null=True)
+    policy_type = models.CharField(max_length=50, blank=True, null=True)
+    insurer = models.CharField(max_length=100, blank=True, null=True)
+    date_of_commencement = models.DateField(blank=True, null=True)
+    date_of_last_premium = models.DateField(blank=True, null=True)
+    date_of_maturity = models.DateField(blank=True, null=True)
+    premium_amount = models.FloatField(blank=True, null=True)
+    sum_assured = models.FloatField(blank=True, null=True)
+    frequency = models.CharField(max_length=50, blank=True, null=True)
+    agent_name = models.CharField(max_length=100, blank=True, null=True)
+    policy_status = models.CharField(max_length=50, blank=True, null=True)
+    total_premium_paid = models.FloatField(blank=True, null=True)
+    current_value = models.FloatField(blank=True, null=True)
+    remarks = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        db_table = 'insurance'
+        managed = True

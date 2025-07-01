@@ -61,6 +61,7 @@ const MutualFunds = () => {
             <div className="flex flex-col w-full items-center">
                 <div className="w-full px-2 text-sm font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950 flex flex-row items-center">
                     <span>Mutual Fund Holdings</span>
+                    <span className="ms-2"><MutualFundsUpload /></span>
                     <span className="ms-auto"></span>
                     {assetClasses && (
                         <span className="flex flex-row gap-2 text-xs ms-2 text-gray-400">
@@ -133,7 +134,7 @@ const MutualFunds = () => {
                 <FundDetails selectedFund={selectedFund} setSelectedFund={setSelectedFund} />
             )}
 
-            <MutualFundsUpload />
+            <MutualFundsUpload simple={false} />
         </div>
     );
 };
@@ -238,7 +239,7 @@ const FundDetails = ({ selectedFund, setSelectedFund }) => {
     }
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs">
-            <div className="flex flex-col bg-neutral-900 border border-white/10 rounded-sm shadow-xl w-4/5 max-h-[80vh]">
+            <div className="flex flex-col bg-neutral-900 border border-white/10 rounded-sm shadow-xl w-4/5 max-h-[100vh]">
                 {/* Header */}
                 <div className="flex flex-row p-1 items-center font-bold text-sm rounded-t-sm bg-amber-700 z-10">
                     <span>{selectedFund.instrument_name}</span>

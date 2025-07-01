@@ -10,6 +10,7 @@ import LedgerMaster from "./pages/masters/LedgerMaster";
 import MutualFunds from "./pages/portfolio/mutualfunds/MutualFunds";
 import Stocks from "./pages/portfolio/stocks/Stocks";
 import MarketData from "./pages/tools/marketdata/MarketData";
+import Insurance from "./pages/portfolio/insurance/Insurance";
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -21,7 +22,6 @@ function App() {
     phone: "",
   });
   const api = import.meta.env.VITE_API;
-  // const api = "http://127.0.0.1:8000";
   const provider = {
     api,
     loggedIn,
@@ -51,6 +51,7 @@ function App() {
               <Route path="/portfolio">
                 <Route path="mutualfunds" element={<MutualFunds />} />
                 <Route path="stocks" element={<Stocks />} />
+                <Route path="insurance" element={<Insurance />} />
               </Route>
 
               <Route path="/tools">
