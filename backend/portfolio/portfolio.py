@@ -1,15 +1,13 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from portfolio.models import PortfolioTransactions, PortfolioHoldings
+from marketdata.amfi import amfi_historical_resampled
+from marketdata.nse import nse_historical_resampled
 import pandas as pd
 from datetime import datetime
-from decimal import Decimal
-from scipy.optimize import brentq
 from django.utils import timezone
-from portfolio.utils import marketdata_api_request, xirr
-from django.conf import settings
+from portfolio.utils import xirr
 import numpy as np
-from django.db import transaction
 from datetime import date
 
 
@@ -386,10 +384,9 @@ def cv_mf(data: pd.DataFrame) -> pd.DataFrame:
     nav_rows = []
 
     for isin in isins:
-        nav, status, message = marketdata_api_request(
-            f"{settings.MARKETDATA_API}/amfi/fetch-historical-resampled/?isin={isin}&frequency=ME"
-        )
-
+        message, nav = amfi_historical_resampled(
+            isin=isin, frequency="ME")
+        
         if isinstance(nav, pd.DataFrame) and not nav.empty and 'close' in nav.columns and 'date' in nav.columns:
             nav['date'] = pd.to_datetime(nav['date'], errors='coerce')
             nav['close'] = pd.to_numeric(nav['close'], errors='coerce')
@@ -416,9 +413,7 @@ def cv_equity(data: pd.DataFrame) -> pd.DataFrame:
     close_rows = []
 
     for symbol in symbols:
-        equity_df, status, message = marketdata_api_request(
-            f"{settings.MARKETDATA_API}/nse/historical/resample/fetch/?symbol={symbol}&frequency=ME&period=1825"
-        )
+        message, equity_df = nse_historical_resampled(symbol=symbol, period=1825, frequency="ME")
 
         if isinstance(equity_df, pd.DataFrame) and not equity_df.empty and 'close' in equity_df.columns and 'date' in equity_df.columns:
             equity_df['date'] = pd.to_datetime(

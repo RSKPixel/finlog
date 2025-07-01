@@ -32,7 +32,6 @@ const Dashboard = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Portfolio Summary Data:", data);
         setProgressData(data.data.progress);
         setSummary(
           data.data.summary || {

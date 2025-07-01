@@ -110,32 +110,35 @@ const Authenticator = () => {
       <div className="flex flex-col items-center w-full justify-center h-fit mt-4">
         <h1 className="text-xl font-bold pb-2 text-white/80">Welcome to FinLog your Personal Book Keeper</h1>
         <h2 className="text-sm text-white/50">
-          <i className="bi bi-lock-fill"></i> Please login to access your book
+
         </h2>
-        <form
-          autoComplete="off"
-          className="flex flex-col gap-2 w-[350px] border border-neutral-700 rounded-sm text-sm p-4 mt-2 shadow-lg bg-neutral-900"
-        >
-          <label>Client PAN</label>
-          <input type="text" className="uppercase" name="pan" value={formData.pan} onChange={handleFormChange} />
-          <label>Password</label>
-          <input type="password" name="password" value={formData.password} onChange={handleFormChange} />
-          {formMessage &&
-            formMessage.map((message, index) => (
-              <div key={index} className="text-red-600 text-center">
-                {message}
-              </div>
-            ))}
-          <div className="flex flex-row gap-4 mt-4">
-            <button type="button" className="button-basic blue" onClick={handleLogin}>
-              Log In
-            </button>
-            <div className="ms-auto"></div>
-            <button type="button" className="button-basic yellow" onClick={() => setRegistration(true)}>
-              Sign Up
-            </button>
-          </div>
-        </form>
+        <div className="flex flex-col w-[450px] items-center shadow-xl mt-4">
+          <div className="w-full px-2 text-sm text-white/50 font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950"><i className="bi bi-lock-fill"></i> Please login to access your book</div>
+          <form
+            autoComplete="off"
+            className="flex flex-col gap-2 w-full border border-sky-900 rounded-b-sm text-sm p-4 shadow-lg bg-neutral-900"
+          >
+            <label>Client PAN</label>
+            <input type="text" className="uppercase" name="pan" value={formData.pan} onChange={handleFormChange} />
+            <label>Password</label>
+            <input type="password" name="password" value={formData.password} onChange={handleFormChange} />
+            {formMessage &&
+              formMessage.map((message, index) => (
+                <div key={index} className="text-red-600 text-center">
+                  {message}
+                </div>
+              ))}
+            <div className="flex flex-row gap-4 mt-4">
+              <button type="button" className="button-basic blue" onClick={handleLogin}>
+                Log In
+              </button>
+              <div className="ms-auto"></div>
+              <button type="button" className="button-basic yellow" onClick={() => setRegistration(true)}>
+                Sign Up
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     );
   }
@@ -221,53 +224,56 @@ const Registration = ({ setRegistration }) => {
 
   return (
     <div className="flex flex-col items-center w-full justify-center h-fit mt-4">
-      <h1 className="text-xl font-bold pb-2 text-white/80">New Registration</h1>
-      <form
-        autoComplete="off"
-        className="grid grid-cols-2 gap-4 w-[600px] border border-neutral-700 rounded-sm text-sm p-4 mt-2 shadow-lg bg-neutral-900"
-      >
-        <div className="flex flex-col gap-2">
-          <label>Client PAN *</label>
-          <input type="text" className="uppercase" name="pan" value={formData.pan} onChange={handleChange} />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label>Name *</label>
-          <input type="text" name="name" value={formData.name} onChange={handleChange} />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label>Email *</label>
-          <input type="email" name="email" value={formData.email} onChange={handleChange} />
-        </div>
-        <div className="flex flex-col gap-2" value={formData.phone}>
-          <label>Phone</label>
-          <input type="tel" name="phone" onChange={handleChange} />
-        </div>
-        <div className="flex flex-col gap-2" value={formData.password}>
-          <label>Password *</label>
-          <input type="password" name="password" onChange={handleChange} />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label>Confirm Password *</label>
-          <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} />
-        </div>
-        <div className="col-span-2 flex flex-col gap-0 text-sm text-white/50">
-          {formMessage &&
-            formMessage.map((message, index) => (
-              <div key={index} className="text-red-600 text-xs text-center">
-                {message}
-              </div>
-            ))}
-        </div>
-        <div className="col-span-2 flex flex-row gap-4">
-          <button type="button" className="button-basic blue" onClick={() => setRegistration(false)}>
-            Login
-          </button>
-          <span className="ms-auto"></span>
-          <button type="button" className="button-basic green" onClick={handleSubmit}>
-            Save
-          </button>
-        </div>
-      </form>
+      <div className="flex flex-col w-[700px] items-center shadow-xl">
+        <div className="w-full px-2 text-sm font-bold z-10 border border-sky-900 py-1 rounded-t-sm bg-sky-950">New Registration</div>
+
+        <form
+          autoComplete="off"
+          className="grid grid-cols-2 gap-4 w-full border border-sky-900 rounded-b-sm text-sm p-4 shadow-lg bg-neutral-900"
+        >
+          <div className="flex flex-col gap-2">
+            <label>Client PAN *</label>
+            <input type="text" className="uppercase" name="pan" value={formData.pan} onChange={handleChange} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label>Name *</label>
+            <input type="text" name="name" value={formData.name} onChange={handleChange} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label>Email *</label>
+            <input type="email" name="email" value={formData.email} onChange={handleChange} />
+          </div>
+          <div className="flex flex-col gap-2" value={formData.phone}>
+            <label>Phone</label>
+            <input type="tel" name="phone" onChange={handleChange} />
+          </div>
+          <div className="flex flex-col gap-2" value={formData.password}>
+            <label>Password *</label>
+            <input type="password" name="password" onChange={handleChange} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label>Confirm Password *</label>
+            <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} />
+          </div>
+          <div className="col-span-2 flex flex-col gap-0 text-sm text-white/50">
+            {formMessage &&
+              formMessage.map((message, index) => (
+                <div key={index} className="text-red-600 text-xs text-center">
+                  {message}
+                </div>
+              ))}
+          </div>
+          <div className="col-span-2 flex flex-row gap-4">
+            <button type="button" className="button-basic blue" onClick={() => setRegistration(false)}>
+              Login
+            </button>
+            <span className="ms-auto"></span>
+            <button type="button" className="button-basic green" onClick={handleSubmit}>
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

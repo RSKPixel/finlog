@@ -71,7 +71,7 @@ const MarketData = () => {
       .then((data) => {
         setLoading(false);
         setLoadingMessage("");
-        setFormMessage([data.message]);
+        setFormMessage(data.message);
       })
       .catch((error) => {
         setLoading(false);
@@ -79,6 +79,30 @@ const MarketData = () => {
         setFormMessage(["Error downloading AMFI Historical Data. Please try again later."]);
       });
   };
+
+  const handleNseHistoricalDownload = () => {
+    setLoading(true);
+    setLoadingMessage("Downloading NSE Historical Data...");
+    fetch(`${api}/marketdata/nse/historical/download/`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setLoading(false);
+        setLoadingMessage("");
+        setFormMessage(data.message);
+      })
+      .catch((error) => {
+        setLoading(false);
+        setLoadingMessage("");
+        setFormMessage(["Error downloading NSE Historical Data. Please try again later."]);
+      });
+  };
+
+
 
   return (
     <div className="flex flex-col gap-4 w-full items-center">
@@ -98,7 +122,7 @@ const MarketData = () => {
             Download AMFI Historical
           </button>
           <button className="button-basic green text-sm text-gray-400" onClick={handleNseEodDownload}>Download NSE EOD</button>
-          <button className="button-basic green text-sm text-gray-400">Download NSE Historical</button>
+          <button className="button-basic green text-sm text-gray-400" onClick={handleNseHistoricalDownload}>Download NSE Historical</button>
           {/* </div> */}
           {formMessage && (
             <div className="w-full  col-span-4">

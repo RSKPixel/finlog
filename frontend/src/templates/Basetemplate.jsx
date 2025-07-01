@@ -9,7 +9,7 @@ const Basetemplate = ({ children }) => {
       Dashboard: "/",
       "Mutual Funds": "/portfolio/mutualfunds",
       Stocks: "/portfolio/stocks",
-      "Bank Deposits": "/portfolio/bankdeposits",
+      "Bonds & Fixed Deposits": "/portfolio/bonds-fixeddeposits",
       Insurance: "/portfolio/insurance",
       Assets: "/portfolio/assets",
     },

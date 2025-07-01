@@ -49,32 +49,9 @@ const ProgressChart = ({
   }, [selectedPeriod]);
 
   return (
-    <div className="flex flex-col bg-stone-900 rounded-lg shadow-lg border border-b-0 border-stone-950 h-fit w-full mt-4">
-      <div className="h-[300px] w-full flex flex-col gap-4">
-        {investmentProgress.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            No investment progress data available for the selected portfolio.
-          </div>
-        ) : (
-          <LineChartMonthly data={investmentProgress} options={selectedChartData} />
-        )}
-      </div>
-      <div className="flex flex-row text-xs justify-between items-center bg-blue-950 p-0 rounded-b-lg border-b-1 border-neutral-950">
-        {/* {options && (
-          <div className="flex flex-row gap-2 px-2">
-            {portfolioList.map((port, index) => (
-              <div
-                key={port}
-                className={`${activePortfolio == port && "bg-amber-300 text-black"
-                  } font-bold px-2 py-1 rounded-sm cursor-pointer hover:bg-blue-400`}
-                onClick={() => setActivePortfolio(port)}
-              >
-                {port}
-              </div>
-            ))}
-          </div>
-        )} */}
-        <div className="flex flex-row gap-2 px-2">
+    <div className="flex flex-col bg-stone-900 rounded-sm shadow-lg border border-sky-900 h-fit w-full mt-4">
+      <div className="flex flex-row text-xs justify-between items-center rounded-t-sm bg-sky-950 p-0 border-b-1 border-sky-900">
+        <div className="flex flex-row gap-2 px-3">
           {chartData.map((data, index) => (
             <span
               key={index}
@@ -87,7 +64,7 @@ const ProgressChart = ({
           ))}
         </div>
 
-        <div className="flex flex-row gap-2 p-2">
+        <div className="flex flex-row gap-2 p-1">
           {Object.keys(period).map((per, index) => (
             <span
               key={per}
@@ -99,6 +76,15 @@ const ProgressChart = ({
             </span>
           ))}
         </div>
+      </div>
+      <div className="h-[350px] w-full flex flex-col gap-4 border-t-1 border-sky-900">
+        {investmentProgress.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            No investment progress data available for the selected portfolio.
+          </div>
+        ) : (
+          <LineChartMonthly data={investmentProgress} options={selectedChartData} />
+        )}
       </div>
     </div>
   );
@@ -122,7 +108,7 @@ const LineChartMonthly = ({ data, options = [] }) => {
   const allDatasets = [
     {
       label: "Investment Value",
-      data: data.map((item) => item.invested_value),
+      data: data.map((item) => item.invested_value / 1000000),
       fill: true,
       backgroundColor: "rgba(75, 192, 192, 0.2)",
       borderColor: "rgba(75, 192, 192, 1)",
@@ -135,7 +121,7 @@ const LineChartMonthly = ({ data, options = [] }) => {
     },
     {
       label: "Current Value",
-      data: data.map((item) => item.current_value),
+      data: data.map((item) => item.current_value / 1000000),
       fill: false,
       backgroundColor: "rgba(153, 102, 255, 0.2)",
       borderColor: "rgba(153, 102, 255, 1)",
