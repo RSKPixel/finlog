@@ -13,6 +13,7 @@ urlpatterns = [
     path("mutualfund/upload/", mutualfund_upload,),
     path("mutualfund/holdings/", mutualfund_holdings,),
     path("mutualfund/holdings/details/", fundsummary),
+    path("mutualfund/holdings/update/", mutualfund_holdings_update, name="mutualfund_holdings_update"),
 
     #  Equity URLs
     path("stocks/upload/", equity_upload, name="equity_upload"),

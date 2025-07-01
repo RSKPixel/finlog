@@ -451,3 +451,42 @@ def update_nav(client_pan):
         )
     return True
 
+@api_view(['POST'])
+def mutualfund_holdings_update(request):
+    client_pan = request.data.get('client_pan')
+    instrument_id = request.data.get('instrument_id')
+    folio_id = request.data.get('folio_id')
+    portfolio = request.data.get('portfolio', 'Mutual Fund')
+    asset_class = request.data.get('asset_class')
+    goalpot = request.data.get('goalpot')
+
+    filter = {
+        'client_pan': client_pan,
+        'folio_id': folio_id,
+        'instrument_id': instrument_id,
+    }
+
+    holdings = PortfolioHoldings.objects.filter(**filter)
+    transaction = PortfolioTransactions.objects.filter(**filter)
+
+    update_data = {}
+    if goalpot:
+        update_data['goalpot'] = goalpot
+    if asset_class:
+        update_data['asset_class'] = asset_class
+
+    if not holdings.exists() or not update_data:
+        return Response({
+            "status": "error",
+            "message": "No holdings found for the given criteria or no update data provided.",
+            "data": []
+        })
+
+    holdings.update(**update_data)
+    transaction.update(**update_data)
+
+    return Response({
+        "status": "success",
+        "message": "Holdings updated successfully.",
+        "data": []
+    })

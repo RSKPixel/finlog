@@ -183,7 +183,6 @@ const FundDetails = ({ selectedFund, setSelectedFund }) => {
             .then((response) => response.json())
             .then((data) => {
                 const pa = data.data.purchase_analysis
-                console.log("Purchase Analysis", pa);
                 setHoldingSummary(data.data || holdingSummaryBlank);
                 setEfficencyRatioData({
                     labels: pa.map((item) => item.year),
@@ -211,7 +210,7 @@ const FundDetails = ({ selectedFund, setSelectedFund }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-
+        console.log("Updating holding:", name, value);
         fetch(`${api}/portfolio/mutualfund/holdings/update/`, {
             method: "POST",
             headers: {
@@ -293,7 +292,7 @@ const FundDetails = ({ selectedFund, setSelectedFund }) => {
                         <select
                             name="asset_class"
                             onChange={handleChange}
-                            value={holdingSummary.holding.asset_class}
+                            value={holdingSummary.holding.asset_class || ""}
                         >
                             <option value="Debt">Debt</option>
                             <option value="Equity">Equity</option>
@@ -301,10 +300,11 @@ const FundDetails = ({ selectedFund, setSelectedFund }) => {
                         </select>
                         <div>Goal Pot</div>
                         <select
-                            // onChange={handleChange}
+                            onChange={handleChange}
                             name="goalpot"
-                            defaultValue={holdingSummary.holding.goalpot}
+                            value={holdingSummary.holding.goalpot || ""}
                         >
+                            <option value="">Select a Pot option</option>
                             <option value="Retirement">Retirement</option>
                             <option value="Child Education">Child Education</option>
                             <option value="Child Marriage">Child Marriage</option>

@@ -17,6 +17,7 @@ class PortfolioTransactions(models.Model):
     unit_price = models.FloatField(blank=True, null=True)
     balance_units = models.FloatField(blank=True, null=True)
     holding_value = models.FloatField(blank=True, null=True)
+    goalpot = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         db_table = 'portfolio_transactions'
