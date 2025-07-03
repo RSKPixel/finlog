@@ -39,7 +39,6 @@ const Stocks = () => {
       .then((response) => response.json())
       .then((data) => {
         data = data.data;
-        console.log(data);
         setSummary(data.summary_data.summary || blankSummaryData);
         setHoldings(data.summary_data.holdings || []);
         setFolios(data.folios || []);

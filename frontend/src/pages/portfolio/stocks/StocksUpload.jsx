@@ -27,7 +27,6 @@ const StocksUpload = () => {
         })
             .then((response) => response.json())
             .then((data) => {
-                console.log(data);
                 setTradingAccounts(data.data || []);
                 setLoading(false);
             })
