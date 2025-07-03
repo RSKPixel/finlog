@@ -22,5 +22,7 @@ urlpatterns = [
     # Insurance URLs
     path("insurance/", insurance, name="insurance"),
     path("insurance/save/", insurance_save, name="insurance_save"),
+    path("insurance/transactions/save/", insurance_transactions_save),
+    path("insurance/transactions/", insurance_transactions, name="insurance_transactions"),
 
 ]

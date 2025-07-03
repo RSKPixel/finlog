@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from portfolio.models import Insurance
+from portfolio.models import Insurance, InsuranceTransactions
 
 
 @api_view(['POST'])
@@ -34,6 +34,8 @@ def insurance_save(request):
     frequency = request.data.get('frequency')
     agent_name = str.upper(request.data.get('agent_name'))
     policy_status = request.data.get('policy_status')
+    total_premium_paid = request.data.get('total_premium_paid')
+    current_value = request.data.get('current_value')
     remarks = request.data.get('remarks')
 
     print(client_pan, policy_name, policy_no, policy_type, insurer, date_of_commencement, date_of_last_premium, date_of_maturity, premium_amount, sum_assured, frequency, agent_name, policy_status, remarks)
@@ -56,6 +58,8 @@ def insurance_save(request):
             frequency=frequency,
             agent_name=agent_name,
             policy_status=policy_status,
+            total_premium_paid=total_premium_paid,
+            current_value=current_value,
             remarks=remarks
         )
         insurance.save()
@@ -74,7 +78,10 @@ def insurance_save(request):
             insurance.frequency = frequency
             insurance.agent_name = agent_name
             insurance.policy_status = policy_status
+            insurance.total_premium_paid = total_premium_paid
+            insurance.current_value = current_value
             insurance.remarks = remarks
+
             insurance.save()
             return Response({"status": "success", "message": "Insurance policy updated successfully", "data": [] })
         except Insurance.DoesNotExist:
@@ -88,3 +95,61 @@ def insurance_save(request):
             return Response({"status": "error", "message": "Insurance policy not found", "data": [] })
 
     return Response({"status": "error", "message": "Invalid action", "data": [] })
+
+@api_view(['POST'])
+def insurance_transactions(request):
+    client_pan = request.data.get('client_pan')
+    policy_no = request.data.get('policy_no')
+
+    if not client_pan or not policy_no:
+        return Response({"status": "error", "message": "Client PAN and Policy Number are required", "data": []})
+
+    transactions = InsuranceTransactions.objects.filter(client_pan=client_pan, policy_no=policy_no).values()
+
+    if not transactions:
+        return Response({"status": "error", "message": "No insurance transactions found for the given PAN and Policy Number", "data": []})
+
+    return Response({"status": "success", "message": "Data fetched", "data": list(transactions)})
+
+@api_view(['POST'])
+def insurance_transactions_save(request):
+    action = request.data.get('action')
+    transaction_id = request.data.get('transaction_id', None)
+    client_pan = request.data.get('client_pan')
+    policy_no = request.data.get('policy_no')
+    transaction_date = request.data.get('transaction_date')
+    transaction_type = request.data.get('transaction_type')
+    transaction_amount = request.data.get('transaction_amount')
+
+    if not client_pan or not policy_no or not transaction_date or not transaction_type or not transaction_amount:
+        return Response({"status": "error", "message": "Client PAN, Policy Number, Transaction Date, Transaction Type and Transaction Amount are required", "data": []})
+
+    if action == 'new':
+        insurance_transaction = InsuranceTransactions(
+            client_pan=client_pan,
+            policy_no=policy_no,
+            transaction_date=transaction_date,
+            transaction_type=transaction_type,
+            transaction_amount=transaction_amount,
+        )
+        insurance_transaction.save()
+        return Response({"status": "success", "message": "Insurance transaction added successfully", "data": [] })
+    elif action == 'modify':
+        try:
+            insurance_transaction = InsuranceTransactions.objects.get(id=transaction_id)
+            insurance_transaction.transaction_type = transaction_type
+            insurance_transaction.transaction_amount = transaction_amount
+
+            insurance_transaction.save()
+            return Response({"status": "success", "message": "Insurance transaction updated successfully", "data": [] })
+        except InsuranceTransactions.DoesNotExist:
+            return Response({"status": "error", "message": "Insurance transaction not found", "data": [] })
+    elif action == 'delete':
+        try:
+            insurance_transaction = InsuranceTransactions.objects.get(client_pan=client_pan, policy_no=policy_no, transaction_date=transaction_date)
+            insurance_transaction.delete()
+            return Response({"status": "success", "message": "Insurance transaction deleted successfully", "data": [] })
+        except InsuranceTransactions.DoesNotExist:
+            return Response({"status": "error", "message": "Insurance transaction not found", "data": [] })
+    
+    return Response({"status": "success", "message": "Insurance transaction saved successfully", "data": [] })

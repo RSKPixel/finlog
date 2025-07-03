@@ -91,3 +91,16 @@ class Insurance(models.Model):
     class Meta:
         db_table = 'insurance'
         managed = True
+
+class InsuranceTransactions(models.Model):
+    id = models.AutoField(primary_key=True)
+    client_pan = models.CharField(max_length=10, blank=True, null=True)
+    policy_no = models.CharField(max_length=50, blank=True, null=True)
+    transaction_date = models.DateField(blank=True, null=True)
+    transaction_type = models.CharField(max_length=20, blank=True, null=True)
+    transaction_amount = models.FloatField(blank=True, null=True)
+    remarks = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        db_table = 'insurance_transactions'
+        managed = True
