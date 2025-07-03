@@ -71,8 +71,14 @@ def fundsummary(request):
 
     purchase_analysis["avg_nav"] = purchase_analysis['holding_value'] / purchase_analysis['balance_units']
     purchase_analysis = purchase_analysis.merge(yearly[['year', 'mean' ,'high','low',]], on='year', how='left')
-    purchase_analysis["efficency_ratio"] = round((purchase_analysis["high"] - purchase_analysis["avg_nav"]) / (purchase_analysis["high"] - purchase_analysis["low"]),2)
+    # purchase_analysis["efficency_ratio"] = round((purchase_analysis["high"] - purchase_analysis["avg_nav"]) / (purchase_analysis["high"] - purchase_analysis["low"]),2)
 
+    eff_ratio = (purchase_analysis["high"] - purchase_analysis["avg_nav"]) / (purchase_analysis["high"] - purchase_analysis["low"])
+    purchase_analysis["efficency_ratio"] = np.where(
+        (purchase_analysis["high"] - purchase_analysis["low"]) == 0,
+        None,
+        round(eff_ratio, 2)
+    )
 
     cutoff_date = pd.to_datetime(date.today() - relativedelta(years=1))
     long = df[df['transaction_date'] < cutoff_date]
@@ -108,6 +114,7 @@ def fundsummary(request):
         changes = [None if pd.isna(val) else val for val in row]
         nav_changes_yearly.append({"year": year, "changes": changes})
 
+
     return Response({
         "status": "success", 
         "data": {
@@ -139,6 +146,7 @@ def mutualfund_holdings(request):
 
     filter = {'client_pan': client_pan, 'portfolio': portfolio}
 
+    update_holdings(client_pan=client_pan, portfolio=portfolio)
     update_nav(client_pan=client_pan)
     update_holdings_xirr(client_pan=client_pan, portfolio=portfolio)
     summary_data = holding_summary(client_pan=client_pan, portfolio=portfolio,

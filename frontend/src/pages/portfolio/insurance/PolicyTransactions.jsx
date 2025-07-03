@@ -29,6 +29,7 @@ const PolicyTransactions = ({ addTransaction, setAddTransaction, insuranceData }
     const [formData, setFormData] = useState(blankTransaction)
 
     useEffect(() => {
+        console.log("Fetching transactions for policy:", insuranceData.policy_no)
         fetch(`${api}/portfolio/insurance/transactions/`, {
             method: "POST",
             headers: {

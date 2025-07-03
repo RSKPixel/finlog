@@ -79,12 +79,12 @@ def update_holdings(client_pan, portfolio):
         PortfolioHoldings.objects.update_or_create(
             client_pan=row['client_pan'],
             portfolio=row['portfolio'],
-            asset_class=row['asset_class'],
             folio_id=row['folio_id'],
             folio_name=row['folio_name'],
             instrument_id=row['instrument_id'],
             instrument_name=row['instrument_name'],
             defaults={
+                'asset_class': row['asset_class'],
                 'holding_units': row['sum_holding_units'],
                 'holding_value': row['sum_holding_value'],
                 'holding_price': row['holding_price'],

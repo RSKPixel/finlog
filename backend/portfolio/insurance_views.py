@@ -12,7 +12,15 @@ def insurance(request):
     if not client_pan:
         return Response({"status": "error", "message": "Client PAN is required", "data": []})
 
-    insurances = Insurance.objects.filter(client_pan=client_pan).values()
+    insurances_qs = Insurance.objects.filter(client_pan=client_pan, policy_status__in=['Active', 'Premium Fully Paid'])
+    insurances = insurances_qs.values().order_by('date_of_maturity')
+
+    summary = insurances_qs.aggregate(
+        total_premium_paid=Sum('total_premium_paid'),
+        total_sum_assured=Sum('sum_assured'),
+        total_current_value=Sum('current_value')
+    )
+
     transactions = {}
     for insurance in insurances:
         total_premium_paid = InsuranceTransactions.objects.filter(
@@ -37,7 +45,7 @@ def insurance(request):
         ).values('transaction_date', 'transaction_type', 'transaction_amount')
         transactions[insurance['policy_no']] = list(t)
 
-    insurances = Insurance.objects.filter(client_pan=client_pan).values()
+    # insurances = Insurance.objects.filter(client_pan=client_pan).values()
     df = pd.DataFrame(list(insurances))
     df.fillna(0, inplace=True)
 
@@ -47,7 +55,11 @@ def insurance(request):
     return Response({"status": "success", "message": "Data fetched", "data": {
         'insurance': df.to_dict(orient='records'),
         'transactions': transactions,
-        }})
+        'summary':  {
+            'total_premium_paid': summary['total_premium_paid'] if summary['total_premium_paid'] else 0,
+            'total_sum_assured': summary['total_sum_assured'] if summary['total_sum_assured'] else 0,
+            'total_current_value': summary['total_current_value'] if summary['total_current_value'] else 0
+        }}})
 
 
 @api_view(['POST'])
