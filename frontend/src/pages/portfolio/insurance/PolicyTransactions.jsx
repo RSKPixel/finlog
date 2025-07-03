@@ -69,6 +69,30 @@ const PolicyTransactions = ({ addTransaction, setAddTransaction, insuranceData }
             })
     }
 
+    const handleDelete = (item) => {
+        if (!window.confirm("Are you sure you want to delete this transaction?")) return
+        fetch(`${api}/portfolio/insurance/transactions/save/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Token ${token}`,
+            },
+            body: JSON.stringify({
+                action: "delete",
+                client_pan: client.pan,
+                transaction_id: item.id,
+            })
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.status === "success") {
+                    setTransactions((prev) => prev.filter(t => t.id !== item.id))
+                }
+                setFormMessage([data.message] || [])
+            })
+    }
+
+
     const handleChange = (e) => {
         const { name, value } = e.target
         setFormData({
@@ -141,11 +165,8 @@ const PolicyTransactions = ({ addTransaction, setAddTransaction, insuranceData }
                                 <div className="text-sm text-center">{item.transaction_date}</div>
                                 <div className="text-sm text-end">{numeral(item.transaction_amount).format("0,0.00")}</div>
                                 <div className='flex flex-row gap-2 justify-center items-center'>
-                                    <span className='text-center' onClick={() => handleModify(item)}>
-                                        <i className="bi bi-pencil-square cursor-pointer hover:text-yellow-400"></i>
-                                    </span>
                                     <span className='text-center'>
-                                        <i className="bi bi-trash cursor-pointer hover:text-red-400"></i>
+                                        <i className="bi bi-trash cursor-pointer hover:text-red-400" onClick={() => handleDelete(item)}></i>
                                     </span>
                                 </div>
                             </div>

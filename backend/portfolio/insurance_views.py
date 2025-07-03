@@ -13,7 +13,7 @@ def insurance(request):
         return Response({"status": "error", "message": "Client PAN is required", "data": []})
 
     insurances = Insurance.objects.filter(client_pan=client_pan).values()
-
+    transactions = {}
     for insurance in insurances:
         total_premium_paid = InsuranceTransactions.objects.filter(
             client_pan=client_pan,
@@ -26,6 +26,17 @@ def insurance(request):
             policy_no=insurance['policy_no']
         ).update(total_premium_paid=total_premium_paid)
 
+        trans = InsuranceTransactions.objects.filter(
+            client_pan=client_pan,
+            policy_no=insurance['policy_no']
+        ).values()
+
+        t = InsuranceTransactions.objects.filter(
+            client_pan=client_pan,
+            policy_no=insurance['policy_no']
+        ).values('transaction_date', 'transaction_type', 'transaction_amount')
+        transactions[insurance['policy_no']] = list(t)
+
     insurances = Insurance.objects.filter(client_pan=client_pan).values()
     df = pd.DataFrame(list(insurances))
     df.fillna(0, inplace=True)
@@ -33,7 +44,10 @@ def insurance(request):
     if not insurances:
         return Response({"status": "error", "message": "No insurance data found for the given PAN", "data": []})
 
-    return Response({"status": "success", "message": "Data fetched", "data": df.to_dict(orient='records')})
+    return Response({"status": "success", "message": "Data fetched", "data": {
+        'insurance': df.to_dict(orient='records'),
+        'transactions': transactions,
+        }})
 
 
 @api_view(['POST'])
@@ -146,7 +160,8 @@ def insurance_transactions_save(request):
     transaction_type = request.data.get('transaction_type')
     transaction_amount = request.data.get('transaction_amount')
 
-    if not client_pan or not policy_no or not transaction_date or not transaction_type or not transaction_amount:
+    
+    if (not client_pan or not policy_no or not transaction_date or not transaction_type or not transaction_amount) and action != 'delete':
         return Response({"status": "error", "message": "Client PAN, Policy Number, Transaction Date, Transaction Type and Transaction Amount are required", "data": []})
 
     if action == 'new':
@@ -173,7 +188,7 @@ def insurance_transactions_save(request):
     elif action == 'delete':
         try:
             insurance_transaction = InsuranceTransactions.objects.get(
-                client_pan=client_pan, policy_no=policy_no, transaction_date=transaction_date)
+                client_pan=client_pan, id=transaction_id)
             insurance_transaction.delete()
             return Response({"status": "success", "message": "Insurance transaction deleted successfully", "data": []})
         except InsuranceTransactions.DoesNotExist:
