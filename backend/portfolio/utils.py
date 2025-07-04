@@ -80,7 +80,6 @@ def update_holdings(client_pan, portfolio):
         axis=1
     )
     holdings_data = holdings_data.round(2)
-    holdings_data.to_clipboard(index=False)
     for _, row in holdings_data.iterrows():
         PortfolioHoldings.objects.update_or_create(
             client_pan=row['client_pan'],

@@ -138,7 +138,6 @@ def amfi_download_eod(request):
         df = df[['date', 'scheme_code', 'scheme_name',
                  'amc_code', 'amc_name', 'isin_1', 'isin_2', 'nav', 'asset_class', 'scheme_type']]
         df.to_csv(nav_amfi_csv, index=False)
-        df.to_clipboard(index=False)
         existing_objs = MutualFundsEod.objects.in_bulk(
             field_name='scheme_code'
         )
