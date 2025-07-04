@@ -134,7 +134,7 @@ const MutualFunds = () => {
                 <FundDetails selectedFund={selectedFund} setSelectedFund={setSelectedFund} />
             )}
 
-            <MutualFundsUpload simple={false} />
+            {/* <MutualFundsUpload simple={false} /> */}
         </div>
     );
 };
