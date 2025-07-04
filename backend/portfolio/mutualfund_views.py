@@ -17,6 +17,7 @@ import numpy as np
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 
+
 @api_view(['POST'])
 def fundsummary(request):
     client_pan = request.data.get('client_pan')
@@ -29,7 +30,7 @@ def fundsummary(request):
         instrument_id=instrument_id
     ).values().first()
 
-    transactions  = PortfolioTransactions.objects.filter(
+    transactions = PortfolioTransactions.objects.filter(
         client_pan=client_pan,
         folio_id=folio_id,
         instrument_id=instrument_id,
@@ -38,7 +39,8 @@ def fundsummary(request):
 
     status_message, nav = amfi_historical_fetch(instrument_id)
     if status_message != "success":
-        nav = pd.DataFrame(columns=["date","isin","scheme_code","nav","scheme_name","amc_name"])
+        nav = pd.DataFrame(
+            columns=["date", "isin", "scheme_code", "nav", "scheme_name", "amc_name"])
         yearly = pd.DataFrame(columns=["date", "open", "high", "low", "close"])
         print(f"Failed to fetch NAV data: {status_message}")
 
@@ -52,14 +54,14 @@ def fundsummary(request):
     nav['date'] = pd.to_datetime(nav['date'])
     nav = nav[(nav['date'] >= start_date) & (nav['date'] <= end_date)]
     yearly = (nav.groupby(nav['date'].dt.year)
-                .agg(open=('nav', 'first'),
-                    high=('nav', 'max'),
-                    low=('nav', 'min'),
-                    close=('nav', 'last'),
-                    mean=('nav', 'mean'),
-                    ).reset_index()
-                    .rename(columns={'date': 'year'})  
-            )
+              .agg(open=('nav', 'first'),
+                   high=('nav', 'max'),
+                   low=('nav', 'min'),
+                   close=('nav', 'last'),
+                   mean=('nav', 'mean'),
+                   ).reset_index()
+              .rename(columns={'date': 'year'})
+              )
 
     purchase_analysis = (
         df[df['balance_units'] > 0]
@@ -69,11 +71,14 @@ def fundsummary(request):
         .reset_index()
     )
 
-    purchase_analysis["avg_nav"] = purchase_analysis['holding_value'] / purchase_analysis['balance_units']
-    purchase_analysis = purchase_analysis.merge(yearly[['year', 'mean' ,'high','low',]], on='year', how='left')
+    purchase_analysis["avg_nav"] = purchase_analysis['holding_value'] / \
+        purchase_analysis['balance_units']
+    purchase_analysis = purchase_analysis.merge(
+        yearly[['year', 'mean', 'high', 'low',]], on='year', how='left')
     # purchase_analysis["efficency_ratio"] = round((purchase_analysis["high"] - purchase_analysis["avg_nav"]) / (purchase_analysis["high"] - purchase_analysis["low"]),2)
 
-    eff_ratio = (purchase_analysis["high"] - purchase_analysis["avg_nav"]) / (purchase_analysis["high"] - purchase_analysis["low"])
+    eff_ratio = (purchase_analysis["high"] - purchase_analysis["avg_nav"]) / (
+        purchase_analysis["high"] - purchase_analysis["low"])
     purchase_analysis["efficency_ratio"] = np.where(
         (purchase_analysis["high"] - purchase_analysis["low"]) == 0,
         None,
@@ -84,29 +89,31 @@ def fundsummary(request):
     long = df[df['transaction_date'] < cutoff_date]
     short = df[df['transaction_date'] >= cutoff_date]
     longterm_holdings = {
-        "value":long['holding_value'].sum(), 
+        "value": long['holding_value'].sum(),
         "units": long['balance_units'].sum(),
         "nav": long['holding_value'].sum() / long['balance_units'].sum() if long['balance_units'].sum() > 0 else 0,
         "pl": long["balance_units"].sum() * holding['current_price'] - long["holding_value"].sum(),
-        }
+    }
     shortterm_holdings = {
-        "value":short['holding_value'].sum(), 
+        "value": short['holding_value'].sum(),
         "units": short['balance_units'].sum(),
         "nav": short['holding_value'].sum() / short['balance_units'].sum() if short['balance_units'].sum() > 0 else 0,
         "pl": short["balance_units"].sum() * holding['current_price'] - short["holding_value"].sum(),
-        }
-    
+    }
+
     status_message, nav_changes = amfi_historical_resampled(instrument_id)
     if status_message != "success":
-        nav_changes = pd.DataFrame(columns=["date", "isin", "scheme_code", "nav", "scheme_name", "amc_name"])
+        nav_changes = pd.DataFrame(
+            columns=["date", "isin", "scheme_code", "nav", "scheme_name", "amc_name"])
         print(f"Failed to fetch NAV changes data: {status_message}")
 
     nav_changes['date'] = pd.to_datetime(nav_changes['date'])
     nav_changes['year'] = pd.to_datetime(nav_changes['date']).dt.year
     nav_changes['month'] = pd.to_datetime(nav_changes['date']).dt.month
     nav_changes = nav_changes[['year', 'month', 'change']]
-    
-    grouped = nav_changes.groupby(['year', 'month'])['change'].first().unstack(fill_value=None)
+
+    grouped = nav_changes.groupby(['year', 'month'])[
+        'change'].first().unstack(fill_value=None)
     grouped = grouped.replace([np.inf, -np.inf], np.nan)
 
     nav_changes_yearly = []
@@ -114,20 +121,20 @@ def fundsummary(request):
         changes = [None if pd.isna(val) else val for val in row]
         nav_changes_yearly.append({"year": year, "changes": changes})
 
-
     return Response({
-        "status": "success", 
+        "status": "success",
         "data": {
-            "longterm_holdings": longterm_holdings, 
-            "shortterm_holdings": shortterm_holdings, 
-            "transactions": df.to_dict(orient='records'), 
+            "longterm_holdings": longterm_holdings,
+            "shortterm_holdings": shortterm_holdings,
+            "transactions": df.to_dict(orient='records'),
             "holding": holding,
             "nav_yearly": yearly.to_dict(orient='records'),
             "nav_daily": nav.to_dict(orient='records'),
             "purchase_analysis": purchase_analysis.to_dict(orient='records'),
             "nav_changes": list(reversed(nav_changes_yearly)),
-            }
-        })  
+        }
+    })
+
 
 @api_view(['POST'])
 def mutualfund_holdings(request):
@@ -164,6 +171,7 @@ def mutualfund_holdings(request):
             "instruments": list(instruments),
             "progress": progress_data.to_dict(orient='records'),
         }})
+
 
 @api_view(['POST'])
 def mutualfund_upload(request):
@@ -281,6 +289,7 @@ def mutualfund_upload(request):
         "data": data.to_dict(orient='records')
     })
 
+
 def camspdf_extraction(pdf_path, password=None, client_pan=None):
 
     url = "https://www.amfiindia.com/spages/NAVOpen.txt"
@@ -391,6 +400,7 @@ def camspdf_extraction(pdf_path, password=None, client_pan=None):
 
     return newdf
 
+
 def search_isin(isin, amfi_data):
 
     if amfi_data:
@@ -418,6 +428,7 @@ def search_isin(isin, amfi_data):
 
     return None, None, None
 
+
 def update_nav(client_pan):
 
     portfolio = 'Mutual Fund'
@@ -444,6 +455,7 @@ def update_nav(client_pan):
             client_pan=client_pan,
             instrument_id=isin
         )
+
         holding_units, holding_value = mf.values(
             "holding_units", "holding_value").first().values()
         current_value = round(nav * holding_units, 2)
@@ -458,6 +470,7 @@ def update_nav(client_pan):
             plp=plp
         )
     return True
+
 
 @api_view(['POST'])
 def mutualfund_holdings_update(request):

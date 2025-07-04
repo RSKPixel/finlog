@@ -51,6 +51,7 @@ def amfi_historical_download(request):
     except Exception as e:
         return Response({"message": str(e), "data": []})
 
+
 @api_view(['GET'])
 def amfi_download_eod(request):
     try:
@@ -58,6 +59,9 @@ def amfi_download_eod(request):
         response = session.get(url)
         response.raise_for_status()
         data = response.text.splitlines()
+
+        mf_asset_class = pd.read_csv(
+            os.path.join(BASE_DIR, "data", "mfac.csv"))
 
         nav_amfi_csv = os.path.join(BASE_DIR, "data", "mf_nav_amfi.csv")
         nav_amfi_txt = os.path.join(BASE_DIR, "data", "mf_nav_amfi.txt")
@@ -120,10 +124,21 @@ def amfi_download_eod(request):
             'isin_2': 'isin_2',
             'nav': 'nav'
         })
-        df = df[['date', 'scheme_code', 'scheme_name',
-                 'amc_code', 'amc_name', 'isin_1', 'isin_2', 'nav']]
-        df.to_csv(nav_amfi_csv, index=False)
+        df['scheme_type'] = df['isin_1'].apply(lambda x: mf_asset_class.loc[mf_asset_class['isin']
+                                               == x, 'scheme_type'].values[0] if x in mf_asset_class['isin'].values else None)
 
+        # if scheme_type is Debt, then asset_class is Debt else it is Equity
+        df['asset_class'] = df['scheme_type'].apply(
+            lambda x: 'Debt' if x == 'Debt' else 'Equity')
+
+        # if scheme_name contains Gold then asset_class is Gold else it is Equity
+        df['asset_class'] = df.apply(
+            lambda x: 'Gold' if 'Gold' in x['scheme_name'] else x['asset_class'], axis=1)
+
+        df = df[['date', 'scheme_code', 'scheme_name',
+                 'amc_code', 'amc_name', 'isin_1', 'isin_2', 'nav', 'asset_class', 'scheme_type']]
+        df.to_csv(nav_amfi_csv, index=False)
+        df.to_clipboard(index=False)
         existing_objs = MutualFundsEod.objects.in_bulk(
             field_name='scheme_code'
         )
@@ -139,7 +154,9 @@ def amfi_download_eod(request):
                 amc_code=row['amc_code'],
                 amc_name=row['amc_name'],
                 isin=row['isin_1'],
-                nav=row['nav']
+                nav=row['nav'],
+                asset_class=row['asset_class'],
+                scheme_type=row['scheme_type']
             )
 
             if row['scheme_code'] in existing_objs:
@@ -172,6 +189,7 @@ def amfi_download_eod(request):
         os.remove(nav_amfi_txt)
         os.remove(nav_amfi_csv)
         return Response({"message": e, "data": []})
+
 
 def amfi_historical_data(isin, scheme_code, amc_code, period=1825):
 
@@ -276,6 +294,7 @@ def amfi_historical_data(isin, scheme_code, amc_code, period=1825):
     )
     return msg
 
+
 def amfi_historical_fetch(isin, from_date=None, to_date=None):
 
     data = pd.DataFrame()
@@ -294,15 +313,16 @@ def amfi_historical_fetch(isin, from_date=None, to_date=None):
 
     try:
         data = MutualFundsHistorical.objects.filter(**filter_kwargs).values()
-        
+
         data = pd.DataFrame(list(data))
         if data.empty:
             return "No data found", data
-        
+
         return "success", data
-    
+
     except Exception as e:
         return str(e), data
+
 
 def amfi_historical_resampled(isin, from_date=None, to_date=None, frequency='ME'):
 
@@ -354,7 +374,8 @@ def amfi_historical_resampled(isin, from_date=None, to_date=None, frequency='ME'
     resampled_data = resampled_data.sort_values(by='date')
 
     resampled_data['previous_close'] = resampled_data['close'].shift(1)
-    resampled_data['change'] = (resampled_data['close'] - resampled_data['previous_close']) / resampled_data['previous_close'] * 100
+    resampled_data['change'] = (
+        resampled_data['close'] - resampled_data['previous_close']) / resampled_data['previous_close'] * 100
     resampled_data['change'] = resampled_data['change'].round(2)
 
     resampled_data.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -364,6 +385,7 @@ def amfi_historical_resampled(isin, from_date=None, to_date=None, frequency='ME'
     resampled_data['date'] = resampled_data['date'].dt.strftime('%Y-%m-%d')
 
     return "success", resampled_data
+
 
 def amfi_eod_fetch(amc_name=None, isin=None) -> pd.DataFrame:
 

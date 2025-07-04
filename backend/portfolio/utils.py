@@ -9,7 +9,6 @@ from decimal import Decimal
 from scipy.optimize import brentq
 
 
-
 @transaction.atomic
 def update_holdings_xirr(client_pan, portfolio):
 
@@ -29,16 +28,18 @@ def update_holdings_xirr(client_pan, portfolio):
         cvd = datetime.now()
 
         cash_flow_df = pd.DataFrame(list(cash_flow_qs.values()))
-        cash_flow_df['transaction_date'] = pd.to_datetime(cash_flow_df['transaction_date'], errors='coerce')
+        cash_flow_df['transaction_date'] = pd.to_datetime(
+            cash_flow_df['transaction_date'], errors='coerce')
         cash_flow_df['holding_value'] = -cash_flow_df['holding_value']
-        cash_flow_df['holding_value'] = cash_flow_df['holding_value'].astype(float)
+        cash_flow_df['holding_value'] = cash_flow_df['holding_value'].astype(
+            float)
         cash_flow_df = cash_flow_df[["transaction_date", "holding_value"]]
-        
-        
+
         cash_flow_df = pd.concat([cash_flow_df, pd.DataFrame(
             [[cvd, cv]], columns=["transaction_date", "holding_value"])], ignore_index=True)
         cash_flow_df = cash_flow_df.sort_values(by='transaction_date')
-        cash_flow_df['holding_value'] = cash_flow_df['holding_value'].astype(float)
+        cash_flow_df['holding_value'] = cash_flow_df['holding_value'].astype(
+            float)
 
         try:
             xirr_result = xirr(
@@ -50,12 +51,15 @@ def update_holdings_xirr(client_pan, portfolio):
             item.xirr = 0
             print(f"Error calculating XIRR for {item.instrument_id}: {e}")
 
-        item.pl = float(item.current_value if item.current_value else 0) - float(item.holding_value)
-        item.plp = (item.pl / item.holding_value * 100) if item.holding_value else 0
+        item.pl = float(
+            item.current_value if item.current_value else 0) - float(item.holding_value)
+        item.plp = (item.pl / item.holding_value *
+                    100) if item.holding_value else 0
         item.cagr = 0
         item.save()
 
     return
+
 
 @transaction.atomic
 def update_holdings(client_pan, portfolio):
@@ -67,13 +71,12 @@ def update_holdings(client_pan, portfolio):
                     .annotate(
                         sum_holding_units=Sum('balance_units'),
                         sum_holding_value=Sum('holding_value'),
-                        # holding_price=Sum('holding_value') /
-                        # Sum('balance_units'),
                     ))
 
     holdings_data = pd.DataFrame(list(transactions))
     holdings_data['holding_price'] = holdings_data.apply(
-        lambda row: round(row['sum_holding_value'] / row['sum_holding_units'], 2) if row['sum_holding_units'] != 0 else 0,
+        lambda row: round(row['sum_holding_value'] / row['sum_holding_units'],
+                          2) if row['sum_holding_units'] != 0 else 0,
         axis=1
     )
     holdings_data = holdings_data.round(2)
@@ -92,10 +95,30 @@ def update_holdings(client_pan, portfolio):
                 'holding_price': row['holding_price'],
             }
         )
-    
-    PortfolioHoldings.objects.filter(client_pan=client_pan, holding_units__lte=0).delete()
+
+    PortfolioHoldings.objects.filter(
+        client_pan=client_pan, holding_units__lte=0).delete()
+
+    # Update asset_class in PortfolioTransactions based on PortfolioHoldings
+
+    holdings_lookup = {
+        h.instrument_id: h.asset_class
+        for h in PortfolioHoldings.objects.exclude(asset_class__isnull=True)
+    }
+
+    transactions_to_update = []
+    for txn in PortfolioTransactions.objects.all().only('id', 'instrument_id', 'asset_class'):
+        asset_class = holdings_lookup.get(txn.instrument_id)
+        if asset_class and txn.asset_class != asset_class:
+            txn.asset_class = asset_class
+            transactions_to_update.append(txn)
+
+    if transactions_to_update:
+        PortfolioTransactions.objects.bulk_update(
+            transactions_to_update, ['asset_class'])
 
     return
+
 
 @transaction.atomic
 def fifo(client_pan, folio_id, instrument_id):
@@ -104,6 +127,8 @@ def fifo(client_pan, folio_id, instrument_id):
         folio_id=folio_id,
         instrument_id=instrument_id
     ).order_by('transaction_date')
+
+    transactions.update(balance_units=F('units'))
 
     for i in range(len(transactions)):
         if transactions[i].units < 0:
@@ -146,30 +171,35 @@ def fifo(client_pan, folio_id, instrument_id):
     )
     return
 
+
 def xirr(cashflows, dates):
     """Compute XIRR using Brent’s method for stability."""
-    
+
     if len(set(dates)) == 1:  # All dates are the same, invalid for XIRR
         return None
-    if not (any(cf < 0 for cf in cashflows) and any(cf > 0 for cf in cashflows)):  # Must have inflow & outflow
+    # Must have inflow & outflow
+    if not (any(cf < 0 for cf in cashflows) and any(cf > 0 for cf in cashflows)):
         return None
 
     # Convert cashflows to Decimal for precision
     cashflows = [Decimal(cf) for cf in cashflows]
 
     # Ensure dates are datetime objects
-    dates = [d if isinstance(d, datetime) else datetime.strptime(d, "%Y-%m-%d") for d in dates]
+    dates = [d if isinstance(d, datetime) else datetime.strptime(
+        d, "%Y-%m-%d") for d in dates]
 
     def npv(rate):
         """Net Present Value function used in Brent’s method."""
         return sum(float(cf) / ((1 + rate) ** ((d - dates[0]).days / 365.0)) for cf, d in zip(cashflows, dates))
 
     try:
-        return brentq(npv, -0.9999, 100.0)  # Search for the root in a wide range
+        # Search for the root in a wide range
+        return brentq(npv, -0.9999, 100.0)
     except ValueError:
         return None  # No valid root found
 
-def marketdata_api_request(url) -> pd.DataFrame: 
+
+def marketdata_api_request(url) -> pd.DataFrame:
     try:
         response = requests.get(url)
         if response.status_code == 200:
@@ -181,4 +211,3 @@ def marketdata_api_request(url) -> pd.DataFrame:
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
         return None, response.status_code, f"Request failed: {e}"
-   
