@@ -58,7 +58,8 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
         "portfolio": portfolio,
         "asset_class": asset_class,
         "instrument_name": instrument_name,
-        "folio_id": folio_id
+        "folio_id": folio_id,
+        "holding_units__gt": 0,
     }
 
     if portfolio == "All":
@@ -112,6 +113,7 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
         holdings_df['current_value'] / total_current_value * 100
     ).fillna(0)
 
+    filter.pop("holding_units__gt", None)
     filter["balance_units__gt"] = 0
     cash_flow_qs = (PortfolioTransactions.objects
                     .filter(**filter)

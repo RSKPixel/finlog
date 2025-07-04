@@ -14,7 +14,7 @@ from scipy.optimize import brentq
 def update_holdings_xirr(client_pan, portfolio):
 
     portfolio_holdings_qs = PortfolioHoldings.objects.filter(
-        client_pan=client_pan, portfolio=portfolio
+        client_pan=client_pan, portfolio=portfolio, holding_units__gt=0
     ).all()
 
     for item in portfolio_holdings_qs:
@@ -60,36 +60,40 @@ def update_holdings_xirr(client_pan, portfolio):
 @transaction.atomic
 def update_holdings(client_pan, portfolio):
     transactions = PortfolioTransactions.objects.filter(
-        client_pan=client_pan, portfolio=portfolio, balance_units__gt=0)
+        client_pan=client_pan, portfolio=portfolio)
 
     transactions = (transactions
-                    .values("client_pan", "portfolio", "asset_class",
-                            "folio_id", "folio_name", "instrument_id", "instrument_name")
+                    .values("client_pan", "portfolio", "folio_id", "folio_name", "instrument_id", "instrument_name")
                     .annotate(
                         sum_holding_units=Sum('balance_units'),
                         sum_holding_value=Sum('holding_value'),
-                        holding_price=Sum('holding_value') /
-                        Sum('balance_units'),
+                        # holding_price=Sum('holding_value') /
+                        # Sum('balance_units'),
                     ))
 
     holdings_data = pd.DataFrame(list(transactions))
+    holdings_data['holding_price'] = holdings_data.apply(
+        lambda row: round(row['sum_holding_value'] / row['sum_holding_units'], 2) if row['sum_holding_units'] != 0 else 0,
+        axis=1
+    )
     holdings_data = holdings_data.round(2)
-
+    holdings_data.to_clipboard(index=False)
     for _, row in holdings_data.iterrows():
         PortfolioHoldings.objects.update_or_create(
             client_pan=row['client_pan'],
             portfolio=row['portfolio'],
             folio_id=row['folio_id'],
-            folio_name=row['folio_name'],
             instrument_id=row['instrument_id'],
-            instrument_name=row['instrument_name'],
             defaults={
-                'asset_class': row['asset_class'],
+                'folio_name': row['folio_name'],
+                'instrument_name': row['instrument_name'],
                 'holding_units': row['sum_holding_units'],
                 'holding_value': row['sum_holding_value'],
                 'holding_price': row['holding_price'],
             }
         )
+    
+    PortfolioHoldings.objects.filter(client_pan=client_pan, holding_units__lte=0).delete()
 
     return
 
