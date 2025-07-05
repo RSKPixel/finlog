@@ -218,11 +218,11 @@ def calculate_xirr(portfolio="All", client_pan=None, filter=None):
         o_cashflow['holding_value'] = o_cashflow['holding_value'].astype(float)
         o_cashflow = o_cashflow[["transaction_date", "holding_value"]]
 
-        cv = total_current_value if total_current_value else 0
+        # cv = total_current_value if total_current_value else 0
         cvd = datetime.now()
 
-        o_cashflow = pd.concat([o_cashflow, pd.DataFrame(
-            [[cvd, cv]], columns=["transaction_date", "holding_value"])], ignore_index=True)
+        # o_cashflow = pd.concat([o_cashflow, pd.DataFrame(
+        #     [[cvd, cv]], columns=["transaction_date", "holding_value"])], ignore_index=True)
         o_cashflow = o_cashflow.sort_values(by='transaction_date')
 
     cashflow = pd.concat([i_cashflow, o_cashflow], ignore_index=True)
