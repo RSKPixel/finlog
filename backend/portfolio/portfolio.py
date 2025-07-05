@@ -171,7 +171,7 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
 
     # return summary, cashflow
 
-def calculate_xirr(portfolio="All", client_pan=None, asset_class="All", instrument_name="All"):
+def calculate_xirr(portfolio="All", client_pan=None, filter=None):
 
     i_cashflow = pd.DataFrame()
     o_cashflow = pd.DataFrame()
@@ -198,9 +198,34 @@ def calculate_xirr(portfolio="All", client_pan=None, asset_class="All", instrume
         i_cashflow['transaction_date'] = pd.to_datetime(i_cashflow['transaction_date'])
         i_cashflow = i_cashflow.sort_values(by='transaction_date').reset_index(drop=True)
 
-    
-    cashflow = pd.concat([i_cashflow, o_cashflow], ignore_index=True)
+    if portfolio != "Insurance" or portfolio == "All":
+        holdings_qs = PortfolioHoldings.objects.filter(
+        **filter).values().order_by('-xirr')
+        holdings_df = pd.DataFrame(list(holdings_qs))
+        current_value = holdings_df['current_value'].sum() if not holdings_df.empty else 0
+        # value
 
+        filter.pop("holding_units__gt", None)
+        filter["balance_units__gt"] = 0
+        cash_flow_qs = (PortfolioTransactions.objects
+                        .filter(**filter)
+                        .order_by('transaction_date'))
+        o_cashflow = pd.DataFrame(list(cash_flow_qs.values(
+            'transaction_date', 'holding_value')))
+        o_cashflow['transaction_date'] = pd.to_datetime(
+            o_cashflow['transaction_date'], errors='coerce')
+        o_cashflow['holding_value'] = -o_cashflow['holding_value']
+        o_cashflow['holding_value'] = o_cashflow['holding_value'].astype(float)
+        o_cashflow = o_cashflow[["transaction_date", "holding_value"]]
+
+        cv = total_current_value if total_current_value else 0
+        cvd = datetime.now()
+
+        o_cashflow = pd.concat([o_cashflow, pd.DataFrame(
+            [[cvd, cv]], columns=["transaction_date", "holding_value"])], ignore_index=True)
+        o_cashflow = o_cashflow.sort_values(by='transaction_date')
+
+    cashflow = pd.concat([i_cashflow, o_cashflow], ignore_index=True)
     xirr_value = xirr(cashflow['transaction_amount'], cashflow['transaction_date'])
     if xirr_value is not None:
         xirr_value = round(xirr_value * 100, 2)
