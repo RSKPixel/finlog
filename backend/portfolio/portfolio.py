@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from portfolio.models import PortfolioTransactions, PortfolioHoldings
+from portfolio.models import PortfolioTransactions, PortfolioHoldings, Insurance, InsuranceTransactions
+from django.db.models import Sum
 from marketdata.amfi import amfi_historical_resampled
 from marketdata.nse import nse_historical_resampled
 import pandas as pd
@@ -52,7 +53,6 @@ def portfolio(request):
     })
 
 def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_name="All", folio_id="All"):
-
     filter = {
         "client_pan": client_pan,
         "portfolio": portfolio,
@@ -100,14 +100,15 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
         }
     
     holdings_df = pd.DataFrame(list(holdings_qs))
+    holdings_df = holdings_df.round(0)
     holdings_df['current_value'] = holdings_df['current_value'].astype(float)
     holdings_df['holding_value'] = holdings_df['holding_value'].astype(float)
 
     total_holding_value = holdings_df['holding_value'].sum()
     total_current_value = holdings_df['current_value'].sum()
     total_pl = total_current_value - total_holding_value
-    total_plp = (total_pl / total_holding_value *
-                 100) if total_holding_value else 0
+    total_plp = round((total_pl / total_holding_value *
+                 100),0) if total_holding_value else 0
 
     holdings_df['holding_percentage'] = (
         holdings_df['current_value'] / total_current_value * 100
@@ -154,6 +155,59 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
             "xirr": total_xirr,
         }
     }
+
+# def insurance_summary(client_pan, portfolio="All", asset_class="All", instrument_name="All"):
+
+    # summary = insurances_qs.aggregate(
+    #     total_premium_paid=Sum('total_premium_paid'),
+    #     total_sum_assured=Sum('sum_assured'),
+    #     total_current_value=Sum('current_value'),
+    # )
+
+    # summary = pd.DataFrame(list(summary.items())).set_index(0).T.round(0).to_dict('records')[0]
+    # summary['pl'] = summary['total_current_value'] - summary['total_premium_paid']
+    # summary['plp'] = round((summary['pl'] / summary['total_premium_paid']) * 100,0) if summary['total_premium_paid'] else 0
+    # summary['xirr'] = xirr_value
+
+    # return summary, cashflow
+
+def calculate_xirr(portfolio="All", client_pan=None, asset_class="All", instrument_name="All"):
+
+    i_cashflow = pd.DataFrame()
+    o_cashflow = pd.DataFrame()
+
+    if portfolio == "Insurance" or portfolio == "All":
+        insurances_qs = Insurance.objects.filter(client_pan=client_pan, policy_status__in=['Active', 'Premium Fully Paid'])
+        policy_nos = insurances_qs.values_list('policy_no', flat=True).distinct()
+        transactions_qs = InsuranceTransactions.objects.filter(client_pan=client_pan, policy_no__in=policy_nos, transaction_type='premium')
+        insurances = insurances_qs.values().order_by('date_of_maturity')
+        insurances = pd.DataFrame(list(insurances))
+        
+        i_cashflow = transactions_qs.values('transaction_date', 'transaction_amount').order_by('transaction_date')
+        i_cashflow = pd.DataFrame(list(i_cashflow))
+        i_cashflow['transaction_amount'] = i_cashflow['transaction_amount'].astype(float)
+        i_cashflow['transaction_date'] = pd.to_datetime(i_cashflow['transaction_date'])
+        i_cashflow['transaction_amount'] = -i_cashflow['transaction_amount']
+        current_value = insurances['current_value'].sum() if not insurances.empty else 0
+        value_date = datetime.now().date()
+        i_cashflow_data = {
+            'transaction_date': value_date,
+            'transaction_amount': current_value
+        }
+        i_cashflow = pd.concat([i_cashflow, pd.DataFrame([i_cashflow_data])], ignore_index=True)
+        i_cashflow['transaction_date'] = pd.to_datetime(i_cashflow['transaction_date'])
+        i_cashflow = i_cashflow.sort_values(by='transaction_date').reset_index(drop=True)
+
+    
+    cashflow = pd.concat([i_cashflow, o_cashflow], ignore_index=True)
+
+    xirr_value = xirr(cashflow['transaction_amount'], cashflow['transaction_date'])
+    if xirr_value is not None:
+        xirr_value = round(xirr_value * 100, 2)
+    else:
+        xirr_value = 0
+
+    return
 
 def investment_progress(client_pan, portfolio="All", asset_class="All", instrument_name="All") -> pd.DataFrame:
 

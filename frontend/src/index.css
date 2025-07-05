@@ -18,7 +18,13 @@
     -moz-osx-font-smoothing: grayscale;
 }
 /* form.css */
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono&display=swap");
 
+.number-font {
+    font-family: "Inter", sans-serif;
+    font-variant-numeric: tabular-nums;
+    /* letter-spacing: 0.02em; */
+}
 /* form {
   @apply gap-2 border border-neutral-700 rounded-sm text-sm p-4 mt-2 shadow-lg bg-neutral-900;
 } */

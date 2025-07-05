@@ -1,8 +1,10 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from portfolio.utils import xirr
 from portfolio.models import Insurance, InsuranceTransactions
 from django.db.models import Sum
 import pandas as pd
+from datetime import datetime
 
 
 @api_view(['POST'])
@@ -13,15 +15,46 @@ def insurance(request):
         return Response({"status": "error", "message": "Client PAN is required", "data": []})
 
     insurances_qs = Insurance.objects.filter(client_pan=client_pan, policy_status__in=['Active', 'Premium Fully Paid'])
+    policy_nos = insurances_qs.values_list('policy_no', flat=True).distinct()
+    transactions_qs = InsuranceTransactions.objects.filter(client_pan=client_pan, policy_no__in=policy_nos, transaction_type='premium')
     insurances = insurances_qs.values().order_by('date_of_maturity')
+    insurances = pd.DataFrame(list(insurances))
+
+    
+    cashflow = transactions_qs.values('transaction_date', 'transaction_amount').order_by('transaction_date')
+    cashflow = pd.DataFrame(list(cashflow))
+    cashflow['transaction_amount'] = cashflow['transaction_amount'].astype(float)
+    cashflow['transaction_date'] = pd.to_datetime(cashflow['transaction_date'])
+    cashflow['transaction_amount'] = -cashflow['transaction_amount']
+    current_value = insurances['current_value'].sum() if not insurances.empty else 0
+    value_date = datetime.now().date()
+    cashflow_data = {
+        'transaction_date': value_date,
+        'transaction_amount': current_value
+    }
+    cashflow = pd.concat([cashflow, pd.DataFrame([cashflow_data])], ignore_index=True)
+    cashflow['transaction_date'] = pd.to_datetime(cashflow['transaction_date'])
+    cashflow = cashflow.sort_values(by='transaction_date').reset_index(drop=True)
+
+    xirr_value = xirr(cashflow['transaction_amount'], cashflow['transaction_date'])
+    if xirr_value is not None:
+        xirr_value = round(xirr_value * 100, 2)
+    else:
+        xirr_value = 0
 
     summary = insurances_qs.aggregate(
         total_premium_paid=Sum('total_premium_paid'),
         total_sum_assured=Sum('sum_assured'),
-        total_current_value=Sum('current_value')
+        total_current_value=Sum('current_value'),
     )
 
+    summary = pd.DataFrame(list(summary.items())).set_index(0).T.round(0).to_dict('records')[0]
+    summary['pl'] = summary['total_current_value'] - summary['total_premium_paid']
+    summary['plp'] = round((summary['pl'] / summary['total_premium_paid']) * 100,0) if summary['total_premium_paid'] else 0
+    summary['xirr'] = xirr_value
+
     transactions = {}
+    insurances = insurances_qs.values().order_by('date_of_maturity')
     for insurance in insurances:
         total_premium_paid = InsuranceTransactions.objects.filter(
             client_pan=client_pan,
@@ -55,11 +88,7 @@ def insurance(request):
     return Response({"status": "success", "message": "Data fetched", "data": {
         'insurance': df.to_dict(orient='records'),
         'transactions': transactions,
-        'summary':  {
-            'total_premium_paid': summary['total_premium_paid'] if summary['total_premium_paid'] else 0,
-            'total_sum_assured': summary['total_sum_assured'] if summary['total_sum_assured'] else 0,
-            'total_current_value': summary['total_current_value'] if summary['total_current_value'] else 0
-        }}})
+        'summary':  summary }})
 
 
 @api_view(['POST'])

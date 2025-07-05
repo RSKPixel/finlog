@@ -150,6 +150,15 @@ def mutualfund_holdings(request):
         client_pan=client_pan, portfolio=portfolio)
     asset_classes = qs.values_list('asset_class', flat=True).distinct()
     instruments = qs.values_list('instrument_name', flat=True).distinct()
+    holdings_df = pd.DataFrame(list(qs.values()))
+
+    asset_class_wise = holdings_df.groupby('asset_class').agg({
+        'holding_value': 'sum',
+        'current_value': 'sum',
+        'instrument_id': 'count',
+    }).reset_index()
+
+    asset_class_wise["percentage"] = round((asset_class_wise['current_value'] / asset_class_wise['current_value'].sum()) * 100,2)
 
     filter = {'client_pan': client_pan, 'portfolio': portfolio}
 
@@ -167,7 +176,8 @@ def mutualfund_holdings(request):
         "message": "Mutual Fund Holdings fetched successfully",
         "data": {
             "summary_data": summary_data,
-            "asset_classes": list(asset_classes),
+            # "asset_classes": list(asset_classes),
+            "asset_classes": asset_class_wise.to_dict(orient='records'),
             "instruments": list(instruments),
             "progress": progress_data.to_dict(orient='records'),
         }})
