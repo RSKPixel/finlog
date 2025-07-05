@@ -40,7 +40,6 @@ def portfolio(request):
     progress_data = []
     progress_data = investment_progress(
         client_pan=client_pan).to_dict(orient='records')
-    
 
     return Response({
         "status": "success",
@@ -51,6 +50,7 @@ def portfolio(request):
             "summary": summary_data["summary"],
         }
     })
+
 
 def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_name="All", folio_id="All"):
     filter = {
@@ -82,7 +82,7 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
 
     holdings_qs = PortfolioHoldings.objects.filter(
         **filter).values().order_by('-xirr')
-    
+
     if holdings_qs.count() == 0:
         return {
             "holdings": [],
@@ -98,7 +98,7 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
                 "xirr": 0,
             }
         }
-    
+
     holdings_df = pd.DataFrame(list(holdings_qs))
     holdings_df = holdings_df.round(0)
     holdings_df['current_value'] = holdings_df['current_value'].astype(float)
@@ -108,7 +108,7 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
     total_current_value = holdings_df['current_value'].sum()
     total_pl = total_current_value - total_holding_value
     total_plp = round((total_pl / total_holding_value *
-                 100),0) if total_holding_value else 0
+                       100), 0) if total_holding_value else 0
 
     holdings_df['holding_percentage'] = (
         holdings_df['current_value'] / total_current_value * 100
@@ -141,6 +141,9 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
 
     total_xirr = xirr_value if xirr_value is not None else 0
 
+    total_xirr, cashflow = calculate_xirr(
+        portfolio=portfolio, client_pan=client_pan, filter=filter)
+
     return {
         "holdings": holdings_df.to_dict(orient='records'),
         "summary": {
@@ -156,20 +159,6 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
         }
     }
 
-# def insurance_summary(client_pan, portfolio="All", asset_class="All", instrument_name="All"):
-
-    # summary = insurances_qs.aggregate(
-    #     total_premium_paid=Sum('total_premium_paid'),
-    #     total_sum_assured=Sum('sum_assured'),
-    #     total_current_value=Sum('current_value'),
-    # )
-
-    # summary = pd.DataFrame(list(summary.items())).set_index(0).T.round(0).to_dict('records')[0]
-    # summary['pl'] = summary['total_current_value'] - summary['total_premium_paid']
-    # summary['plp'] = round((summary['pl'] / summary['total_premium_paid']) * 100,0) if summary['total_premium_paid'] else 0
-    # summary['xirr'] = xirr_value
-
-    # return summary, cashflow
 
 def calculate_xirr(portfolio="All", client_pan=None, filter=None):
 
@@ -177,33 +166,44 @@ def calculate_xirr(portfolio="All", client_pan=None, filter=None):
     o_cashflow = pd.DataFrame()
 
     if portfolio == "Insurance" or portfolio == "All":
-        insurances_qs = Insurance.objects.filter(client_pan=client_pan, policy_status__in=['Active', 'Premium Fully Paid'])
-        policy_nos = insurances_qs.values_list('policy_no', flat=True).distinct()
-        transactions_qs = InsuranceTransactions.objects.filter(client_pan=client_pan, policy_no__in=policy_nos, transaction_type='premium')
+        insurances_qs = Insurance.objects.filter(
+            client_pan=client_pan, policy_status__in=['Active', 'Premium Fully Paid'])
+        policy_nos = insurances_qs.values_list(
+            'policy_no', flat=True).distinct()
+        transactions_qs = InsuranceTransactions.objects.filter(
+            client_pan=client_pan, policy_no__in=policy_nos, transaction_type='premium')
         insurances = insurances_qs.values().order_by('date_of_maturity')
         insurances = pd.DataFrame(list(insurances))
-        
-        i_cashflow = transactions_qs.values('transaction_date', 'transaction_amount').order_by('transaction_date')
+
+        i_cashflow = transactions_qs.values(
+            'transaction_date', 'transaction_amount').order_by('transaction_date')
         i_cashflow = pd.DataFrame(list(i_cashflow))
-        i_cashflow['transaction_amount'] = i_cashflow['transaction_amount'].astype(float)
-        i_cashflow['transaction_date'] = pd.to_datetime(i_cashflow['transaction_date'])
+        i_cashflow['transaction_amount'] = i_cashflow['transaction_amount'].astype(
+            float)
+        i_cashflow['transaction_date'] = pd.to_datetime(
+            i_cashflow['transaction_date'])
         i_cashflow['transaction_amount'] = -i_cashflow['transaction_amount']
-        current_value = insurances['current_value'].sum() if not insurances.empty else 0
+        current_value = insurances['current_value'].sum(
+        ) if not insurances.empty else 0
         value_date = datetime.now().date()
         i_cashflow_data = {
             'transaction_date': value_date,
             'transaction_amount': current_value
         }
-        i_cashflow = pd.concat([i_cashflow, pd.DataFrame([i_cashflow_data])], ignore_index=True)
-        i_cashflow['transaction_date'] = pd.to_datetime(i_cashflow['transaction_date'])
-        i_cashflow = i_cashflow.sort_values(by='transaction_date').reset_index(drop=True)
+        i_cashflow = pd.concat(
+            [i_cashflow, pd.DataFrame([i_cashflow_data])], ignore_index=True)
+        i_cashflow['transaction_date'] = pd.to_datetime(
+            i_cashflow['transaction_date'])
+        i_cashflow = i_cashflow.sort_values(
+            by='transaction_date').reset_index(drop=True)
 
     if portfolio != "Insurance" or portfolio == "All":
         holdings_qs = PortfolioHoldings.objects.filter(
-        **filter).values().order_by('-xirr')
+            **filter).values().order_by('-xirr')
         holdings_df = pd.DataFrame(list(holdings_qs))
-        current_value = holdings_df['current_value'].sum() if not holdings_df.empty else 0
-        # value
+        current_value = holdings_df['current_value'].sum(
+        ) if not holdings_df.empty else 0
+        value_date = datetime.now().date()
 
         filter.pop("holding_units__gt", None)
         filter["balance_units__gt"] = 0
@@ -217,22 +217,29 @@ def calculate_xirr(portfolio="All", client_pan=None, filter=None):
         o_cashflow['holding_value'] = -o_cashflow['holding_value']
         o_cashflow['holding_value'] = o_cashflow['holding_value'].astype(float)
         o_cashflow = o_cashflow[["transaction_date", "holding_value"]]
-
-        # cv = total_current_value if total_current_value else 0
-        cvd = datetime.now()
-
-        # o_cashflow = pd.concat([o_cashflow, pd.DataFrame(
-        #     [[cvd, cv]], columns=["transaction_date", "holding_value"])], ignore_index=True)
+        o_cashflow_data = {
+            'transaction_date': value_date,
+            'holding_value': current_value
+        }
+        o_cashflow = pd.concat(
+            [o_cashflow, pd.DataFrame([o_cashflow_data])], ignore_index=True)
+        o_cashflow['transaction_date'] = pd.to_datetime(
+            o_cashflow['transaction_date'])
+        o_cashflow['holding_value'] = o_cashflow['holding_value'].astype(float)
+        o_cashflow.rename(
+            columns={'holding_value': 'transaction_amount'}, inplace=True)
         o_cashflow = o_cashflow.sort_values(by='transaction_date')
 
     cashflow = pd.concat([i_cashflow, o_cashflow], ignore_index=True)
-    xirr_value = xirr(cashflow['transaction_amount'], cashflow['transaction_date'])
+    xirr_value = xirr(cashflow['transaction_amount'],
+                      cashflow['transaction_date'])
     if xirr_value is not None:
         xirr_value = round(xirr_value * 100, 2)
     else:
         xirr_value = 0
 
-    return
+    return xirr_value, cashflow
+
 
 def investment_progress(client_pan, portfolio="All", asset_class="All", instrument_name="All") -> pd.DataFrame:
 
@@ -369,6 +376,7 @@ def investment_progress(client_pan, portfolio="All", asset_class="All", instrume
                                'benchmark_value', 'peak', 'drawdown', 'xirr']]
     return progress_df
 
+
 @api_view(['POST'])
 def investment_progress_yearly(request):
     client_pan = request.data.get('client_pan')
@@ -384,8 +392,6 @@ def investment_progress_yearly(request):
         filter.pop("portfolio")
 
     holdings_qs = PortfolioHoldings.objects.filter(**filter).values()
-
-
 
     instruments = pd.DataFrame(list(holdings_qs))["instrument_id"].unique()
     holdings = pd.DataFrame(holdings_qs)
@@ -416,7 +422,8 @@ def investment_progress_yearly(request):
         .agg({'cash_flow': 'sum', 'units': 'sum'})
         .reset_index()
     )
-    cv = pd.merge(cv, holdings[['instrument_id', 'current_price']], on='instrument_id', how='left')
+    cv = pd.merge(
+        cv, holdings[['instrument_id', 'current_price']], on='instrument_id', how='left')
     cv['cash_flow'] = cv['units'] * cv['current_price'].fillna(0)
     cv['transaction'] = "Current Value"
 
@@ -424,12 +431,14 @@ def investment_progress_yearly(request):
     txn_df['transaction'] = "Investment"
 
     cv = cv[['transaction_date', 'instrument_id', 'transaction', 'cash_flow']]
-    txn_df = txn_df[['transaction_date', 'instrument_id', 'transaction', 'cash_flow']]
+    txn_df = txn_df[['transaction_date',
+                     'instrument_id', 'transaction', 'cash_flow']]
 
     combined = pd.concat([cv, txn_df], ignore_index=True)
     today = pd.to_datetime(date.today())
     combined['year'] = combined['transaction_date'].dt.year
-    combined.loc[combined['transaction'] == 'Current Value', 'transaction_date'] = today
+    combined.loc[combined['transaction'] ==
+                 'Current Value', 'transaction_date'] = today
 
     cv = combined.copy()
 
@@ -441,10 +450,12 @@ def investment_progress_yearly(request):
         # cash_flow = cv[(cv['instrument_id'] == row['instrument_id']) & (cv['year'] == row['year'])]
         cash_flow = cv[cv['year'] == row['year']]
         if not cash_flow.empty:
-            cash_flow = cash_flow[['transaction_date', 'cash_flow']].sort_values(by='transaction_date')
+            cash_flow = cash_flow[['transaction_date', 'cash_flow']].sort_values(
+                by='transaction_date')
             if len(cash_flow) > 1:
                 try:
-                    xirr_value = xirr(cash_flow['cash_flow'], cash_flow['transaction_date'])
+                    xirr_value = xirr(
+                        cash_flow['cash_flow'], cash_flow['transaction_date'])
                     xirr_value = xirr_value * 100 if xirr_value is not None else 0
                 except Exception as e:
                     xirr_value = 0
@@ -456,7 +467,7 @@ def investment_progress_yearly(request):
                 'year': row['year'],
                 'xirr': xirr_value
             })
-    
+
     xirr_df = pd.DataFrame(xirr_data)
     if xirr_df.empty:
         return Response({
@@ -464,13 +475,14 @@ def investment_progress_yearly(request):
             "message": "No XIRR data available for the given client PAN and portfolio."
         })
 
-    xirr_df = xirr_df.round(2)    
+    xirr_df = xirr_df.round(2)
 
     return Response({
         "status": "success",
         "message": "Yearly Investment Progress",
         "data": xirr_df.to_dict(orient='records')
     })
+
 
 def cv_mf(data: pd.DataFrame) -> pd.DataFrame:
     if data.empty:
@@ -481,7 +493,7 @@ def cv_mf(data: pd.DataFrame) -> pd.DataFrame:
     for isin in isins:
         message, nav = amfi_historical_resampled(
             isin=isin, frequency="ME")
-        
+
         if isinstance(nav, pd.DataFrame) and not nav.empty and 'close' in nav.columns and 'date' in nav.columns:
             nav['date'] = pd.to_datetime(nav['date'], errors='coerce')
             nav['close'] = pd.to_numeric(nav['close'], errors='coerce')
@@ -501,6 +513,7 @@ def cv_mf(data: pd.DataFrame) -> pd.DataFrame:
 
     return mf
 
+
 def cv_equity(data: pd.DataFrame) -> pd.DataFrame:
     if data.empty:
         return data
@@ -508,7 +521,8 @@ def cv_equity(data: pd.DataFrame) -> pd.DataFrame:
     close_rows = []
 
     for symbol in symbols:
-        message, equity_df = nse_historical_resampled(symbol=symbol, period=1825, frequency="ME")
+        message, equity_df = nse_historical_resampled(
+            symbol=symbol, period=1825, frequency="ME")
 
         if isinstance(equity_df, pd.DataFrame) and not equity_df.empty and 'close' in equity_df.columns and 'date' in equity_df.columns:
             equity_df['date'] = pd.to_datetime(
