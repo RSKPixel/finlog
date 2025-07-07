@@ -165,7 +165,7 @@ def calculate_xirr(portfolio="All", client_pan=None, filter=None):
     i_cashflow = pd.DataFrame()
     o_cashflow = pd.DataFrame()
 
-    if portfolio == "Insurance" or portfolio == "All":
+    if portfolio == "Insurance":
         insurances_qs = Insurance.objects.filter(
             client_pan=client_pan, policy_status__in=['Active', 'Premium Fully Paid'])
         policy_nos = insurances_qs.values_list(
