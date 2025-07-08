@@ -141,8 +141,8 @@ def holding_summary(client_pan, portfolio="All", asset_class="All", instrument_n
 
     total_xirr = xirr_value if xirr_value is not None else 0
 
-    total_xirr, cashflow = calculate_xirr(
-        portfolio=portfolio, client_pan=client_pan, filter=filter)
+    # total_xirr, cashflow = calculate_xirr(
+    #     portfolio=portfolio, client_pan=client_pan, filter=filter)
 
     return {
         "holdings": holdings_df.to_dict(orient='records'),

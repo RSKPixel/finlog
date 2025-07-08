@@ -71,7 +71,7 @@ const MarketData = () => {
       .then((data) => {
         setLoading(false);
         setLoadingMessage("");
-        setFormMessage([data.message]);
+        setFormMessage(data.message);
       })
       .catch((error) => {
         setLoading(false);
