@@ -23,16 +23,16 @@ def equity_holdings(request):
 
     update_holdings(client_pan=client_pan, portfolio=portfolio)
     update_eod()
-    update_holdings_xirr(client_pan=client_pan, portfolio=portfolio)
+    # update_holdings_xirr(client_pan=client_pan, portfolio=portfolio)
     summary_data = holding_summary(client_pan=client_pan, portfolio=portfolio, instrument_name=instrument_name, folio_id=folio_id)
     instruments = (PortfolioHoldings.objects
-                   .filter(client_pan=client_pan, portfolio=portfolio)
-                   .values_list('instrument_name', flat=True)
-                   .distinct())
+                .filter(client_pan=client_pan, portfolio=portfolio)
+                .values_list('instrument_name', flat=True)
+                .distinct())
     folios = (PortfolioHoldings.objects
-              .filter(client_pan=client_pan, portfolio=portfolio)
-              .values_list('folio_id', flat=True)
-              .distinct())
+            .filter(client_pan=client_pan, portfolio=portfolio)
+            .values_list('folio_id', flat=True)
+            .distinct())
 
     progress_data = pd.DataFrame()
     # progress_data = investment_progress(

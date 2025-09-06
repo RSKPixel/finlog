@@ -61,7 +61,7 @@ def update_holdings_xirr(client_pan, portfolio):
     return
 
 
-@transaction.atomic
+# @transaction.atomic
 def update_holdings(client_pan, portfolio):
     transactions = PortfolioTransactions.objects.filter(
         client_pan=client_pan, portfolio=portfolio)
