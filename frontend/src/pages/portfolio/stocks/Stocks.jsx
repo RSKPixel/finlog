@@ -10,7 +10,7 @@ const Stocks = () => {
     const [loading, setLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState("");
     const [formMessage, setFormMessage] = useState("");
-    const [selectedInstrument, setSelectedInstrument] = useState("")
+    const [selectedInstrument, setSelectedInstrument] = useState(null)
     const blankSummaryData = {
         total_investment: 0,
         total_current_value: 0,
@@ -46,6 +46,11 @@ const Stocks = () => {
                 setLoading(false);
             });
     }, [selectedFolio]);
+
+    useEffect(() => {
+        console.log(selectedInstrument)
+
+    }, [selectedInstrument])
 
     return (
         <div className="flex flex-col gap-4 w-full items-center">
@@ -93,7 +98,7 @@ const Stocks = () => {
                                     key={index}
                                     className="flex flex-col gap-2 border bg-neutral-800 border-neutral-950  rounded-lg py-2 px-4 mt-2 shadow-lg hover:bg-neutral-700 cursor-pointer"
                                     onClick={() => {
-                                        setSelectedInstrument(holding.instrument_name);
+                                        setSelectedInstrument(holding);
                                     }}
                                 >
                                     <div className="flex flex-row text-sm font-semibold text-nowrap overflow-hidden text-ellipsis">
@@ -118,9 +123,52 @@ const Stocks = () => {
                 </div>
             </div>
 
+            {selectedInstrument && (<StockDetails selectedInstrument={selectedInstrument} setSelectedInstrument={setSelectedInstrument} />)}
             <StocksUpload />
         </div>
     );
 };
 
+const StockDetails = ({ selectedInstrument, setSelectedInstrument }) => {
+
+    return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs">
+        <div className="flex flex-col bg-neutral-900 border border-white/10 rounded-sm shadow-xl w-3/5 max-h-[100vh]">
+            <div className="flex flex-row p-1 items-center font-bold text-sm rounded-t-sm bg-amber-700 z-10">
+                <span>{selectedInstrument.instrument_name}</span>
+                <span className="ms-auto" />
+                <button type="button" className="button-icon red text-xs" onClick={() => setSelectedInstrument(null)}>
+                    X
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 p-4">
+                <div className="grid grid-cols-4 gap-2 text-sm items-center text-center bg-neutral-800 border border-neutral-950 rounded-lg h-fit shadow-lg">
+                    <div className="text-gray-400 text-xs px-2 pt-2">Folio ID</div>
+                    <div className="text-gray-400 text-xs px-2 pt-2">Holding Quantity</div>
+                    <div className="text-gray-400 text-xs px-2 pt-2">Average Price</div>
+                    <div className="text-gray-400 text-xs px-2 pt-2">Current Price</div>
+                    <div className="text-sm px-2 pb-2">{selectedInstrument.folio_id}</div>
+                    <div className="text-sm px-2 pb-2">{selectedInstrument.holding_units}</div>
+                    <div className="text-sm px-2 pb-2">{numeral(selectedInstrument.holding_price).format("0,0.00")}</div>
+                    <div className="text-sm px-2 pb-2">{numeral(selectedInstrument.current_price).format("0,0.00")}</div>
+
+                    <div className="text-gray-400 text-xs px-2 pt-2">Holding Value</div>
+                    <div className="text-gray-400 text-xs px-2 pt-2">Market Value</div>
+                    <div className="text-gray-400 text-xs px-2 pt-2">Total Return</div>
+                    <div className="text-gray-400 text-xs px-2 pt-2">XIRR</div>
+                    <div className="text-sm px-2 pb-2">{numeral(selectedInstrument.holding_value).format("0,0.00")}</div>
+                    <div className="text-sm px-2 pb-2">{numeral(selectedInstrument.current_value).format("0,0.00")}</div>
+                    <div className={`text-sm px-2 pb-2 ${selectedInstrument.pl >= 0 ? "text-green-500" : "text-red-500"}`}>
+                        {numeral(selectedInstrument.pl).format("0,0.00")} ({numeral(selectedInstrument.plp).format("0.00")}%)
+                    </div>
+                    <div className={`text-sm px-2 pb-2 ${selectedInstrument.xirr >= 0 ? "text-green-500" : "text-red-500"}`}>{numeral(selectedInstrument.xirr).format("0.00")}%</div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>)
+
+
+}
 export default Stocks;
