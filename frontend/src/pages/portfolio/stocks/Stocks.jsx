@@ -47,11 +47,6 @@ const Stocks = () => {
             });
     }, [selectedFolio]);
 
-    useEffect(() => {
-        console.log(selectedInstrument)
-
-    }, [selectedInstrument])
-
     return (
         <div className="flex flex-col gap-4 w-full items-center">
             <div className="flex flex-col w-full items-center">
